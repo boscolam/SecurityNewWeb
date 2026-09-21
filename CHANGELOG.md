@@ -2,6 +2,142 @@
 
 All notable changes to the Cybersecurity News Dashboard will be documented in this file.
 
+## [2.2.3] - 2026-09-22
+
+### Added - Comprehensive Health Check & Analysis
+
+Enhanced service.sh with comprehensive health checking and system analysis capabilities.
+
+#### New Commands
+- **`./service.sh health`**: Complete health check with 10-point inspection
+  - Service installation check
+  - Service status check
+  - Application process check
+  - Port availability check (5000)
+  - Virtual environment check
+  - Database check with statistics
+  - Python dependencies check
+  - Recent error logs scan
+  - Disk space check
+  - Web access test (HTTP 200)
+  - Color-coded results (✓ success, ✗ error, ⚠ warning)
+  - Summary with status: ALL SYSTEMS OPERATIONAL / OPERATIONAL WITH WARNINGS / ISSUES DETECTED
+
+- **`./service.sh analyze`**: Detailed analysis with recommendations
+  - Service failure reason detection
+  - Recent error log analysis
+  - Configuration checks (venv, database, permissions)
+  - Database integrity check
+  - Owner/permission validation
+  - Performance metrics (memory, CPU, uptime)
+  - News feed statistics (sources, articles, recent activity)
+  - Specific fix recommendations
+  - Maintenance tips
+
+#### Features
+✅ **10-Point Health Inspection**
+  1. Service Installation
+  2. Service Status
+  3. Application Process
+  4. Port 5000 Availability
+  5. Virtual Environment
+  6. Database
+  7. Python Dependencies
+  8. Recent Error Logs
+  9. Disk Space
+  10. Web Access
+
+✅ **Detailed Metrics**
+  - Memory usage (MB)
+  - CPU usage (%)
+  - Process uptime
+  - Database size
+  - Source count (total/enabled)
+  - News article count (total/24h)
+
+✅ **Smart Recommendations**
+  - Context-aware fix suggestions
+  - Specific command examples
+  - Issue prioritization
+  - Maintenance tips
+
+#### Usage Examples
+
+**Quick Health Check:**
+```bash
+./service.sh health
+```
+
+Output:
+```
+[1/10] Service Installation
+✓ Service installed (user mode)
+
+[2/10] Service Status
+✓ Service is running
+
+[3/10] Application Process
+✓ Process running (PID: 12345)
+
+...
+
+============================================
+  Health Check Summary
+============================================
+✓ ALL SYSTEMS OPERATIONAL
+
+Your Cybersecurity News Dashboard is healthy!
+```
+
+**Detailed Analysis:**
+```bash
+./service.sh analyze
+```
+
+Output:
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Configuration Check
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ Virtual environment OK
+✓ Database exists
+✓ Database integrity OK
+✓ Permissions OK (owner: bosco)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Performance Metrics
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Memory Usage: 85MB
+✓ Memory usage normal
+CPU Usage: 2.3%
+Uptime: 2:15:30
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+News Feed Statistics
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Total Sources: 140
+Enabled Sources: 140
+Total News Articles: 2,543
+News (Last 24h): 127
+✓ Feeds are being updated
+```
+
+#### Benefits
+✅ **Quick Problem Detection**: Identify issues in seconds  
+✅ **Proactive Monitoring**: Check health before problems occur  
+✅ **Smart Diagnostics**: Get specific fix recommendations  
+✅ **Performance Insight**: Monitor memory, CPU, and database  
+✅ **User-Friendly**: Color-coded output, clear summaries  
+✅ **Comprehensive**: 10 checks cover all critical components  
+
+### Modified
+- service.sh: Added health and analyze commands
+- CHANGELOG.md: Documented v2.2.3
+- VERSION: Updated to 2.2.3
+- README.md: Updated version badge
+
+---
+
 ## [2.2.2] - 2026-09-22
 
 ### Fixed - Automatic User/Group/Path Detection
