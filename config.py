@@ -97,12 +97,62 @@ DEFAULT_FEEDS = [
     {"name": "Reddit - r/netsec", "url": "https://www.reddit.com/r/netsec/.rss", "category": "blog", "feed_type": "rss", "region": "global", "enabled": True},
     {"name": "Reddit - r/cybersecurity", "url": "https://www.reddit.com/r/cybersecurity/.rss", "category": "blog", "feed_type": "rss", "region": "global", "enabled": True},
 
-    # --- Government / CERT ---
-    {"name": "JPCERT/CC", "url": "https://www.jpcert.or.jp/english/rss/jpcert-en.rdf", "category": "cve", "feed_type": "rss", "region": "asia_pacific", "enabled": True},
-    {"name": "CERT-EU News", "url": "https://cert.europa.eu/publications/security-advisories/rss", "category": "cve", "feed_type": "rss", "region": "europe", "enabled": True},
-    {"name": "CNVD (China)", "url": "https://www.cnvd.org.cn/rss/bulletin", "category": "cve", "feed_type": "rss", "region": "china", "enabled": True},
-    {"name": "AusCERT", "url": "https://auscert.org.au/rss/bulletins/", "category": "cve", "feed_type": "rss", "region": "asia_pacific", "enabled": True},
-    {"name": "CERT-In (India)", "url": "https://www.cert-in.org.in/Rss.jsp", "category": "cve", "feed_type": "rss", "region": "asia_pacific", "enabled": True},
+    # --- Government CERTs (from Pulsedive certrss) ---
+    # Source: https://github.com/pulsedive/certrss
+    # Updated: 2026-08-16
+
+    # North America
+    {"name": "CISA (US) - News", "url": "https://www.cisa.gov/uscert/ncas/all.xml", "category": "government", "feed_type": "rss", "region": "north_america", "enabled": True},
+    {"name": "CISA (US) - Advisories", "url": "https://www.cisa.gov/cybersecurity-advisories/all.xml", "category": "government", "feed_type": "rss", "region": "north_america", "enabled": True},
+    {"name": "Canadian Cyber Centre - News", "url": "https://cyber.gc.ca/webservice/en/rss/news", "category": "government", "feed_type": "rss", "region": "north_america", "enabled": True},
+    {"name": "Canadian Cyber Centre - Alerts", "url": "https://cyber.gc.ca/webservice/en/rss/alerts", "category": "government", "feed_type": "rss", "region": "north_america", "enabled": True},
+
+    # Europe
+    {"name": "CERT-EU - Advisories", "url": "https://cert.europa.eu/publications/security-advisories-rss", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "CERT-EU - Threat Intel", "url": "https://cert.europa.eu/publications/threat-intelligence-rss", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "UK NCSC - All", "url": "https://www.ncsc.gov.uk/api/1/services/v1/all-rss-feed.xml", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "UK NCSC - News", "url": "https://www.ncsc.gov.uk/api/1/services/v1/news-rss-feed.xml", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "NCSC Finland - News", "url": "https://www.kyberturvallisuuskeskus.fi/feed/rss/en", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "NCSC Finland - Vulnerabilities", "url": "https://www.kyberturvallisuuskeskus.fi/sites/default/files/rss/vulns.xml", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "CERT-FR", "url": "https://www.cert.ssi.gouv.fr/feed/", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "CERT.at", "url": "https://cert.at/cert-at.en.blog.rss_2.0.xml", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "CERT.BE - News", "url": "https://ccb.belgium.be/news.xml", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "CERT.BE - Advisories", "url": "https://ccb.belgium.be/advisories.xml", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "NCSC NL - News", "url": "https://feeds.ncsc.nl/nieuws.rss", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "NCSC NL - Advisories", "url": "https://advisories.ncsc.nl/rss/advisories", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "Swiss GovCERT", "url": "https://www.newsd.admin.ch/newsd/feeds/rss?lang=en&org-nr=1101", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "CERT.PL", "url": "https://cert.pl/en/rss.xml", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "CERT.hr (Croatia)", "url": "https://www.cert.hr/feed/", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "NUKIB (Czech)", "url": "https://nukib.gov.cz/rss.xml", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "DKCERT (Denmark)", "url": "https://www.cert.dk/news/rss", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "CERT-EE (Estonia)", "url": "https://www.ria.ee/et/news-feed/all/feed", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "CSIRT Italia", "url": "https://www.acn.gov.it/portale/feedrss/-/journal/rss/20119/723192", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "CERT.LV (Latvia)", "url": "https://cert.lv/en/feed/rss/all", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "NSM NCSC (Norway)", "url": "https://nsm.no/fagomrader/digital-sikkerhet/nasjonalt-cybersikkerhetssenter/varsler-fra-ncsc/rss/", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "CERT.RO (Romania)", "url": "https://dnsc.ro/feed", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "SI-CERT (Slovenia)", "url": "https://www.cert.si/en/category/news/feed/", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "CCN-CERT (Spain)", "url": "https://www.ccn-cert.cni.es/en/communication-events/articles-and-reports.rss", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "INCIBE-CERT (Spain)", "url": "https://www.incibe.es/en/incibe-cert/alerta-temprana/avisos/feed", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "CERT-SE (Sweden)", "url": "https://www.cert.se/feed.rss", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "CERT-UA (Ukraine)", "url": "https://cert.gov.ua/api/articles/rss", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "NCSC Hungary", "url": "https://nki.gov.hu/figyelmeztetesek/riasztas/feed/", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+    {"name": "CNCS Portugal", "url": "https://www.cncs.gov.pt/docs/noticias/feed-rss/index.xml", "category": "government", "feed_type": "rss", "region": "europe", "enabled": True},
+
+    # Asia Pacific
+    {"name": "AusCERT - Bulletins", "url": "https://portal.auscert.org.au/rss/bulletins/", "category": "government", "feed_type": "rss", "region": "asia_pacific", "enabled": True},
+    {"name": "JPCERT/CC - News", "url": "https://www.jpcert.or.jp/english/rss/jpcert-en.rdf", "category": "government", "feed_type": "rss", "region": "asia_pacific", "enabled": True},
+    {"name": "JPCERT/CC - Blog", "url": "https://blogs.jpcert.or.jp/en/atom.xml", "category": "government", "feed_type": "rss", "region": "asia_pacific", "enabled": True},
+    {"name": "SingCERT (Singapore)", "url": "https://www.csa.gov.sg/Content/RSS-Feed", "category": "government", "feed_type": "rss", "region": "asia_pacific", "enabled": True},
+    {"name": "GovCERT.HK", "url": "https://www.govcert.gov.hk/en/rss_security_alerts.xml", "category": "government", "feed_type": "rss", "region": "asia_pacific", "enabled": True},
+    {"name": "HKCERT", "url": "https://www.hkcert.org/getrss/security-bulletin", "category": "government", "feed_type": "rss", "region": "asia_pacific", "enabled": True},
+
+    # South America
+    {"name": "CERT.br (Brazil)", "url": "https://www.cert.br/rss/certbr-rss.xml", "category": "government", "feed_type": "rss", "region": "south_america", "enabled": True},
+
+    # Middle East & Africa
+    {"name": "EG-CERT (Egypt)", "url": "https://egcert.eg/feed/", "category": "government", "feed_type": "rss", "region": "africa", "enabled": True},
+    {"name": "BGD e-GOV CIRT (Bangladesh)", "url": "https://www.cirt.gov.bd/feed/", "category": "government", "feed_type": "rss", "region": "asia_pacific", "enabled": True},
+    {"name": "NISSA (Libya)", "url": "https://nissa.gov.ly/feed/", "category": "government", "feed_type": "rss", "region": "africa", "enabled": True},
 ]
 
 # ============================================================
@@ -133,6 +183,7 @@ NEWS_CATEGORIES = {
     "darkweb": "Dark Web Intelligence",
     "web_news": "Web News",
     "social_media": "Social Media",
+    "government": "Government CERT",
 }
 
 # ============================================================

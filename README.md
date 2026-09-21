@@ -9,12 +9,12 @@ A comprehensive Flask-based web application that aggregates cybersecurity news f
 ## Features
 
 ### Core Functionality
-- **Multi-Source Aggregation**: Fetches news from 90+ predefined sources across:
+- **Multi-Source Aggregation**: Fetches news from **140+ predefined sources** across:
   - Major cybersecurity news sites (The Hacker News, BleepingComputer, SecurityWeek)
   - Vendor research teams (Palo Alto Unit42, Cisco Talos, Microsoft Security, Google Project Zero)
   - Dark web threat intelligence (DarkOwl, Flashpoint, Recorded Future)
   - CVE databases (NVD, CISA, US-CERT, Exploit-DB)
-  - Government CERTs and security advisories
+  - **52 Government CERTs** (CISA, UK NCSC, CERT-EU, JPCERT, AusCERT, and more - via [Pulsedive certrss](https://github.com/pulsedive/certrss))
   - Chinese cybersecurity vendors (Qihoo 360, NSFOCUS, Antiy Labs)
   - Social media platforms (Reddit r/netsec, Medium cybersecurity)
 
@@ -227,9 +227,58 @@ Contributions are welcome! Please:
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+## Government CERT Feeds 🏛️
+
+**New in v2.0.0!** Integrated 52 official government Computer Emergency Response Team (CERT) RSS feeds from around the world.
+
+### Coverage by Region
+
+**North America** (4 feeds)
+- CISA (United States) - News & Advisories
+- Canadian Centre for Cyber Security - News & Alerts
+
+**Europe** (32 feeds)
+- CERT-EU, UK NCSC, Finland NCSC, France CERT-FR
+- Austria CERT.at, Belgium CERT.BE, Netherlands NCSC
+- Switzerland GovCERT, Poland CERT.PL, Croatia CERT.hr
+- Czech NUKIB, Denmark DKCERT, Estonia CERT-EE
+- Italy CSIRT, Latvia CERT.LV, Norway NSM NCSC
+- Romania CERT.RO, Slovenia SI-CERT, Spain CCN-CERT & INCIBE
+- Sweden CERT-SE, Ukraine CERT-UA, Hungary NCSC, Portugal CNCS
+
+**Asia Pacific** (6 feeds)
+- Australia AusCERT, Japan JPCERT/CC
+- Singapore SingCERT, Hong Kong GovCERT & HKCERT
+- Bangladesh BGD e-GOV CIRT
+
+**South America** (1 feed)
+- Brazil CERT.br
+
+**Africa** (2 feeds)
+- Egypt EG-CERT, Libya NISSA
+
+### Why Government CERTs Matter
+
+✅ **Authoritative Sources**: Direct from official government cybersecurity agencies  
+✅ **Early Warnings**: Often first to report critical vulnerabilities affecting their regions  
+✅ **Compliance**: Essential for organizations with regulatory requirements  
+✅ **Threat Intelligence**: Nation-state threats and critical infrastructure alerts  
+✅ **Regional Context**: Local threat landscape and region-specific advisories
+
+### Source Attribution
+
+Government CERT feeds curated from [Pulsedive certrss](https://github.com/pulsedive/certrss) - a community-maintained registry of government CERT RSS feeds.
+
+Credits to:
+- [Pulsedive](https://pulsedive.com) for the original compilation
+- [Curated Intelligence](https://github.com/curated-intel/) community
+- [CyberSquarePeg](https://twitter.com/CyberSquarePeg) for contributions
+- [DCOD](https://dcod.ch/) for the 2026-08-16 registry refresh
+
 ## Acknowledgments
 
 - Thanks to all the cybersecurity news sources and vendors providing RSS feeds
+- Special thanks to government CERTs worldwide for providing public RSS feeds
 - Inspired by the need for centralized threat intelligence aggregation
 - Built for security professionals, researchers, and enthusiasts
 
