@@ -236,6 +236,9 @@ class GitUpdater:
         else:
             message = f"Updated from {old_commit[:7]} to {new_commit[:7]}"
 
+            # Make scripts executable after update
+            self._make_scripts_executable()
+
         # Log the update
         self._log_update({
             'timestamp': datetime.utcnow().isoformat(),
@@ -254,6 +257,19 @@ class GitUpdater:
             'new_commit': new_commit,
             'output': output
         }
+
+    def _make_scripts_executable(self):
+        """Make shell scripts executable after update."""
+        try:
+            import stat
+            script_files = ['setup.sh', 'service.sh']
+            for script in script_files:
+                script_path = os.path.join(self.repo_path, script)
+                if os.path.exists(script_path):
+                    os.chmod(script_path, os.stat(script_path).st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
+                    logger.info(f"Made {script} executable")
+        except Exception as e:
+            logger.warning(f"Failed to make scripts executable: {e}")
 
     def _log_update(self, update_info):
         """Log update information to file."""

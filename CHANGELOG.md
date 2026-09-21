@@ -2,6 +2,52 @@
 
 All notable changes to the Cybersecurity News Dashboard will be documented in this file.
 
+## [2.2.1] - 2026-09-22
+
+### Added - Quick Fix Documentation
+
+Added comprehensive troubleshooting guide for common update and installation issues.
+
+#### New Documentation
+- **QUICKFIX.md**: One-line solutions for 10 common issues
+  - Git merge conflicts (most common)
+  - Permission denied errors
+  - Service startup problems
+  - Port conflicts
+  - Database locks
+  - Module import errors
+  - 404 errors after update
+  - Git installation issues
+  - Virtual environment problems
+  - Service log errors
+  - Nuclear option (clean reinstall)
+
+#### Documentation Enhancements
+- **UPDATE_INSTRUCTIONS.md**:
+  - Added v2.2.0 features section
+  - Prominent QUICKFIX.md reference
+  - Enhanced merge conflict troubleshooting
+  - One-line quick fix commands
+
+- **README.md**:
+  - Enhanced "Support & Troubleshooting" section
+  - Added QUICKFIX.md reference
+  - Listed common issues with solutions
+  - Added all documentation links
+
+#### User Experience Improvements
+- Quick access to solutions for common problems
+- One-command fixes for most issues
+- Better error message guidance
+- Clearer troubleshooting steps
+
+### Modified
+- UPDATE_INSTRUCTIONS.md: Enhanced with v2.2.0 info and quick fixes
+- README.md: Better support section with troubleshooting
+- Auto-update system verified to work across all versions
+
+---
+
 ## [2.2.0] - 2026-09-22
 
 ### Added - Systemd Service Support

@@ -71,6 +71,24 @@ The application will:
 - ✅ Run background tasks for feed updates
 - ✅ Display the dashboard on port 5000
 
+### ✅ Verify Installation
+
+```bash
+# Check version
+cat VERSION
+# Should show: 2.2.1
+
+# Check git version
+git log --oneline -1
+# Should show: a444813 or later
+
+# Check service (if installed)
+./service.sh status
+
+# Access dashboard
+curl http://localhost:5000
+```
+
 ---
 
 ## 🔄 Run as Systemd Service (Recommended)

@@ -12,7 +12,14 @@ Complete guide to update your existing Cybersecurity News Dashboard to the lates
 
 ---
 
-## 📊 What's New in v2.1.0
+## 📊 What's New
+
+**v2.2.0** (Systemd Service Support):
+- ✅ Run as systemd background service
+- ✅ Auto-start on boot
+- ✅ Service management tools (service.sh)
+- ✅ Enhanced setup script with --service flags
+- ✅ Production-ready deployment
 
 **v2.1.0** (Auto-Update System):
 - ✅ Auto-update from GitHub with web interface
@@ -26,6 +33,7 @@ Complete guide to update your existing Cybersecurity News Dashboard to the lates
 - ✅ Official security advisories
 
 **Total new feeds**: 140+ (up from 90+)
+**Service support**: User and system services
 
 ---
 

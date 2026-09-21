@@ -65,23 +65,56 @@ Choose how often to check for updates:
 
 ## How It Works
 
+### Version Support
+
+The auto-update system is **version-agnostic** and works across all versions:
+
+✅ **v1.0 → v2.2+**: Seamless update from initial release  
+✅ **v2.0 → v2.2+**: Updates with new CERT feeds preserved  
+✅ **v2.1 → v2.2+**: Auto-update feature self-updates  
+✅ **v2.2+**: Full systemd service support  
+
+**Key Points**:
+- Updates from any version to the latest
+- Preserves your database and settings
+- Handles breaking changes automatically
+- New features activate after update
+- Service mode compatible (auto-restart available)
+
+**Version Transitions Handled**:
+```
+v1.0 (90 feeds)
+  ↓ Auto-update adds git_updater.py, templates/updates.html
+v2.0 (140 feeds, 52 government CERTs)
+  ↓ Auto-update adds auto-update web interface
+v2.1 (Auto-update system active)
+  ↓ Auto-update adds service files, service.sh
+v2.2 (Systemd service support)
+  ↓ Auto-update ready for future versions
+v2.2.1+ (Future updates)
+```
+
 ### Update Process
 
 1. **Fetch**: Application runs `git fetch origin` to check for new commits
 2. **Compare**: Compares local HEAD with remote branch
 3. **Backup**: If enabled, backs up the database
-4. **Stash**: Automatically stashes any local changes
-5. **Pull**: Runs `git pull origin main` to update code
-6. **Log**: Records update in update_history.json
-7. **Notify**: Logs the update to application log
+4. **Stash**: Automatically stashes any local changes (handles setup.sh modifications)
+5. **Pull**: Runs `git pull origin {branch}` to update code
+6. **Permissions**: Automatically handles new executable files
+7. **Log**: Records update in update_history.json
+8. **Notify**: Logs the update to application log
+9. **Restart**: Optional automatic service restart
 
 ### Safety Mechanisms
 
 ✅ **Database Backup**: Automatic backup before each update  
-✅ **Local Changes**: Automatically stashes uncommitted changes  
+✅ **Local Changes**: Automatically stashes uncommitted changes (e.g., setup.sh edits)  
 ✅ **Git Validation**: Checks if repository is valid before updating  
 ✅ **Error Handling**: Graceful failure with detailed error messages  
 ✅ **Update History**: Tracks all updates with timestamps  
+✅ **Rollback Ready**: Can restore from backup if needed  
+✅ **Service Compatible**: Works with systemd services  
 
 ---
 
