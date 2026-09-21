@@ -2,6 +2,60 @@
 
 All notable changes to the Cybersecurity News Dashboard will be documented in this file.
 
+## [2.1.0] - 2026-09-21
+
+### Added - Auto-Update Feature
+
+Implemented comprehensive auto-update system with GitHub integration.
+
+#### New Features
+- **Auto-Update from GitHub**: Automatically check and install updates from repository
+- **Web Configuration Interface**: Easy-to-use Updates page for configuration
+- **Flexible Scheduling**: Choose update frequency (hourly, every 6 hours, daily, weekly)
+- **Safety Features**: 
+  - Automatic database backup before updates
+  - Local changes automatically stashed
+  - Git repository validation
+  - Update history tracking
+- **Manual Update Tools**: One-click update checks and installation
+- **Update History**: View last 20 updates with commit details
+- **API Endpoints**: Programmatic access to update functions
+
+#### Components Added
+- `git_updater.py`: Core update logic with GitUpdater class
+- `templates/updates.html`: Web interface for update management
+- API routes for Git operations
+- Auto-update scheduler integration
+- Database settings for update configuration
+
+#### Configuration Options
+- Enable/disable automatic updates
+- Update check schedule (hourly/6h/daily/weekly)
+- Backup database before update (recommended)
+- Restart after update (requires systemd)
+- Update logging and notifications
+
+#### Documentation
+- `AUTO_UPDATE_GUIDE.md`: Comprehensive guide for auto-update feature
+- Troubleshooting section
+- API documentation
+- Security considerations
+- FAQ section
+
+#### Benefits
+1. **Stay Current**: Automatically receive latest features and security patches
+2. **Safe Updates**: Database backups prevent data loss
+3. **Easy Management**: Web interface for non-technical users
+4. **Flexible Control**: Manual or automatic update options
+5. **Audit Trail**: Complete history of all updates
+
+### Modified
+- `app.py`: Added update routes and scheduler
+- `database.py`: Added auto-update settings to defaults
+- `templates/base.html`: Added Updates navigation link
+
+---
+
 ## [2.0.0] - 2026-09-21
 
 ### Added - Government CERT Feeds Integration

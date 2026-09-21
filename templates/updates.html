@@ -1,0 +1,479 @@
+{% extends "base.html" %}
+
+{% block title %}System Updates - Cybersecurity News Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>🔄 System Updates</h1>
+        <p>Manage automatic updates from GitHub repository</p>
+    </div>
+
+    <!-- Git Repository Info -->
+    <div class="card">
+        <h2>📁 Repository Information</h2>
+        <div class="git-info">
+            <div class="info-row">
+                <span class="label">Status:</span>
+                <span class="value" id="git-status">
+                    <span class="badge badge-info">Checking...</span>
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="label">Current Branch:</span>
+                <span class="value" id="current-branch">-</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Current Commit:</span>
+                <span class="value" id="current-commit">-</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Remote Repository:</span>
+                <span class="value" id="remote-url">-</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Local Changes:</span>
+                <span class="value" id="local-changes">-</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Check for Updates -->
+    <div class="card">
+        <h2>🔍 Check for Updates</h2>
+        <div id="update-check-result" style="margin-bottom: 15px;"></div>
+        <button class="btn btn-primary" onclick="checkForUpdates()">
+            <span id="check-btn-text">Check Now</span>
+            <span id="check-spinner" class="spinner" style="display:none;">⏳</span>
+        </button>
+        <button class="btn btn-success" id="update-btn" onclick="performUpdate()" style="display:none;">
+            Install Update
+        </button>
+        <div id="new-commits" style="margin-top: 15px;"></div>
+    </div>
+
+    <!-- Auto-Update Settings -->
+    <div class="card">
+        <h2>⚙️ Auto-Update Settings</h2>
+        <form id="update-settings-form" onsubmit="saveUpdateSettings(event)">
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="auto-update-enabled" name="auto_update_enabled">
+                    Enable Automatic Updates
+                </label>
+                <small>Automatically check and install updates from GitHub</small>
+            </div>
+
+            <div class="form-group">
+                <label for="update-schedule">Update Check Schedule</label>
+                <select id="update-schedule" name="update_schedule" class="form-control">
+                    <option value="hourly">Every Hour</option>
+                    <option value="every_6_hours">Every 6 Hours</option>
+                    <option value="daily">Daily (Midnight)</option>
+                    <option value="weekly">Weekly (Sunday Midnight)</option>
+                </select>
+                <small>How often to check for updates</small>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="backup-before-update" name="backup_before_update" checked>
+                    Backup Database Before Update
+                </label>
+                <small>Recommended: Create database backup before applying updates</small>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="restart-after-update" name="restart_after_update">
+                    Restart After Update (Manual)
+                </label>
+                <small>Note: Automatic restart requires systemd service setup</small>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="notify-on-update" name="notify_on_update" checked>
+                    Log Update Notifications
+                </label>
+                <small>Write update notifications to application log</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Save Settings</button>
+        </form>
+        <div id="settings-message" style="margin-top: 10px;"></div>
+    </div>
+
+    <!-- Update History -->
+    <div class="card">
+        <h2>📜 Update History</h2>
+        <div id="update-history">
+            <p>Loading update history...</p>
+        </div>
+    </div>
+
+    <!-- Manual Update Instructions -->
+    <div class="card">
+        <h2>📖 Manual Update Instructions</h2>
+        <p>If automatic updates don't work, you can update manually:</p>
+
+        <h3>Option 1: Using Git Command Line</h3>
+        <pre><code>cd {{ app_path }}
+git pull origin main
+sudo systemctl restart cybersec-news  # If using systemd
+# OR
+sudo systemctl restart apache2  # If using Apache</code></pre>
+
+        <h3>Option 2: Re-download from GitHub</h3>
+        <pre><code>cd {{ app_path }}
+# Backup your database first!
+cp cybersec_news.db cybersec_news.db.backup
+
+# Pull latest changes
+git fetch origin
+git reset --hard origin/main
+
+# Restart application
+python app.py  # Or restart service</code></pre>
+
+        <h3>Safety Tips</h3>
+        <ul>
+            <li>✅ Always backup your database before major updates</li>
+            <li>✅ Check for local changes before updating</li>
+            <li>✅ Review update notes in CHANGELOG.md</li>
+            <li>✅ Test updates in development before production</li>
+            <li>⚠️ Automatic updates may require application restart</li>
+        </ul>
+    </div>
+</div>
+
+<style>
+.git-info {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.info-row {
+    display: flex;
+    padding: 8px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-row .label {
+    font-weight: bold;
+    min-width: 180px;
+    color: #495057;
+}
+
+.info-row .value {
+    color: #212529;
+    font-family: monospace;
+}
+
+.badge {
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.badge-success {
+    background: #28a745;
+    color: white;
+}
+
+.badge-warning {
+    background: #ffc107;
+    color: #000;
+}
+
+.badge-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.badge-info {
+    background: #17a2b8;
+    color: white;
+}
+
+.alert {
+    padding: 12px 15px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+.alert-success {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.alert-warning {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+}
+
+.alert-danger {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+.alert-info {
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+    color: #0c5460;
+}
+
+.commit-list {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 13px;
+    white-space: pre-wrap;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.spinner {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.history-item {
+    padding: 10px;
+    border-bottom: 1px solid #dee2e6;
+    font-size: 14px;
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+.history-timestamp {
+    color: #6c757d;
+    font-size: 12px;
+}
+
+pre {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+    overflow-x: auto;
+}
+
+code {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+}
+</style>
+
+<script>
+// Load git info on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadGitInfo();
+    loadUpdateSettings();
+    loadUpdateHistory();
+});
+
+function loadGitInfo() {
+    fetch('/api/git/info')
+        .then(response => response.json())
+        .then(data => {
+            if (data.is_git_repo) {
+                document.getElementById('git-status').innerHTML = '<span class="badge badge-success">Valid Git Repository</span>';
+                document.getElementById('current-branch').textContent = data.current_branch || 'unknown';
+                document.getElementById('current-commit').textContent = data.current_commit ? data.current_commit.substring(0, 7) : 'unknown';
+                document.getElementById('remote-url').textContent = data.remote_url || 'unknown';
+                document.getElementById('local-changes').innerHTML = data.has_local_changes
+                    ? '<span class="badge badge-warning">Yes (will be stashed)</span>'
+                    : '<span class="badge badge-success">No</span>';
+            } else {
+                document.getElementById('git-status').innerHTML = '<span class="badge badge-danger">Not a Git Repository</span>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading git info:', error);
+            document.getElementById('git-status').innerHTML = '<span class="badge badge-danger">Error</span>';
+        });
+}
+
+function checkForUpdates() {
+    const btn = document.getElementById('check-btn-text');
+    const spinner = document.getElementById('check-spinner');
+    const resultDiv = document.getElementById('update-check-result');
+    const updateBtn = document.getElementById('update-btn');
+    const commitsDiv = document.getElementById('new-commits');
+
+    btn.style.display = 'none';
+    spinner.style.display = 'inline-block';
+    resultDiv.innerHTML = '';
+    commitsDiv.innerHTML = '';
+    updateBtn.style.display = 'none';
+
+    fetch('/api/git/check-updates')
+        .then(response => response.json())
+        .then(data => {
+            btn.style.display = 'inline-block';
+            spinner.style.display = 'none';
+
+            if (data.error) {
+                resultDiv.innerHTML = `<div class="alert alert-danger">❌ ${data.error}</div>`;
+            } else if (data.available) {
+                resultDiv.innerHTML = `<div class="alert alert-warning">
+                    🎉 <strong>Updates Available!</strong><br>
+                    ${data.commits_behind} new commit(s) can be installed.
+                </div>`;
+                updateBtn.style.display = 'inline-block';
+
+                if (data.new_commits) {
+                    commitsDiv.innerHTML = `
+                        <h4>New Commits:</h4>
+                        <div class="commit-list">${data.new_commits}</div>
+                    `;
+                }
+            } else {
+                resultDiv.innerHTML = `<div class="alert alert-success">✅ ${data.message}</div>`;
+            }
+        })
+        .catch(error => {
+            btn.style.display = 'inline-block';
+            spinner.style.display = 'none';
+            resultDiv.innerHTML = `<div class="alert alert-danger">❌ Error checking for updates: ${error}</div>`;
+        });
+}
+
+function performUpdate() {
+    if (!confirm('Are you sure you want to install the update? The database will be backed up automatically.')) {
+        return;
+    }
+
+    const resultDiv = document.getElementById('update-check-result');
+    const updateBtn = document.getElementById('update-btn');
+
+    resultDiv.innerHTML = '<div class="alert alert-info">⏳ Installing update... This may take a moment.</div>';
+    updateBtn.disabled = true;
+
+    fetch('/api/git/update', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            updateBtn.disabled = false;
+
+            if (data.success) {
+                resultDiv.innerHTML = `<div class="alert alert-success">
+                    ✅ <strong>Update Successful!</strong><br>
+                    ${data.message}<br>
+                    <small>You may need to restart the application for changes to take effect.</small>
+                </div>`;
+                updateBtn.style.display = 'none';
+
+                // Reload git info and history
+                setTimeout(() => {
+                    loadGitInfo();
+                    loadUpdateHistory();
+                }, 1000);
+            } else {
+                resultDiv.innerHTML = `<div class="alert alert-danger">
+                    ❌ <strong>Update Failed:</strong><br>
+                    ${data.error || data.message}
+                </div>`;
+            }
+        })
+        .catch(error => {
+            updateBtn.disabled = false;
+            resultDiv.innerHTML = `<div class="alert alert-danger">❌ Error installing update: ${error}</div>`;
+        });
+}
+
+function loadUpdateSettings() {
+    fetch('/api/settings')
+        .then(response => response.json())
+        .then(settings => {
+            document.getElementById('auto-update-enabled').checked = settings.auto_update_enabled === 'true';
+            document.getElementById('update-schedule').value = settings.update_schedule || 'daily';
+            document.getElementById('backup-before-update').checked = settings.backup_before_update !== 'false';
+            document.getElementById('restart-after-update').checked = settings.restart_after_update === 'true';
+            document.getElementById('notify-on-update').checked = settings.notify_on_update !== 'false';
+        })
+        .catch(error => console.error('Error loading settings:', error));
+}
+
+function saveUpdateSettings(event) {
+    event.preventDefault();
+
+    const settings = {
+        auto_update_enabled: document.getElementById('auto-update-enabled').checked ? 'true' : 'false',
+        update_schedule: document.getElementById('update-schedule').value,
+        backup_before_update: document.getElementById('backup-before-update').checked ? 'true' : 'false',
+        restart_after_update: document.getElementById('restart-after-update').checked ? 'true' : 'false',
+        notify_on_update: document.getElementById('notify-on-update').checked ? 'true' : 'false',
+    };
+
+    const messageDiv = document.getElementById('settings-message');
+    messageDiv.innerHTML = '<div class="alert alert-info">⏳ Saving settings...</div>';
+
+    fetch('/api/update-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            messageDiv.innerHTML = '<div class="alert alert-success">✅ Settings saved successfully!</div>';
+            setTimeout(() => { messageDiv.innerHTML = ''; }, 3000);
+        } else {
+            messageDiv.innerHTML = `<div class="alert alert-danger">❌ Failed to save settings: ${data.error}</div>`;
+        }
+    })
+    .catch(error => {
+        messageDiv.innerHTML = `<div class="alert alert-danger">❌ Error saving settings: ${error}</div>`;
+    });
+}
+
+function loadUpdateHistory() {
+    fetch('/api/git/history')
+        .then(response => response.json())
+        .then(data => {
+            const historyDiv = document.getElementById('update-history');
+
+            if (data.history && data.history.length > 0) {
+                let html = '';
+                data.history.reverse().forEach(item => {
+                    const timestamp = new Date(item.timestamp).toLocaleString();
+                    html += `
+                        <div class="history-item">
+                            <div class="history-timestamp">${timestamp}</div>
+                            <div>${item.message}</div>
+                            <small>
+                                ${item.old_commit ? item.old_commit.substring(0, 7) : 'unknown'} →
+                                ${item.new_commit ? item.new_commit.substring(0, 7) : 'unknown'}
+                            </small>
+                        </div>
+                    `;
+                });
+                historyDiv.innerHTML = html;
+            } else {
+                historyDiv.innerHTML = '<p>No update history available.</p>';
+            }
+        })
+        .catch(error => {
+            document.getElementById('update-history').innerHTML = '<p>Error loading update history.</p>';
+        });
+}
+</script>
+{% endblock %}

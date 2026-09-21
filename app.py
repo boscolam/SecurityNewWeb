@@ -97,6 +97,75 @@ def setup_scheduler():
     scheduler.start()
     logger.info(f"Scheduler started. Feed refresh every {refresh_minutes} minutes.")
 
+    # Setup auto-update scheduler
+    setup_update_scheduler()
+
+
+def setup_update_scheduler():
+    """Configure the auto-update scheduler based on settings."""
+    auto_update_enabled = get_setting('auto_update_enabled', 'false').lower() == 'true'
+
+    if not auto_update_enabled:
+        # Remove the job if it exists
+        try:
+            scheduler.remove_job('auto_update')
+            logger.info("Auto-update scheduler disabled")
+        except:
+            pass
+        return
+
+    from git_updater import check_and_update_if_needed
+    update_schedule = get_setting('update_schedule', 'daily')
+
+    # Remove existing job if it exists
+    try:
+        scheduler.remove_job('auto_update')
+    except:
+        pass
+
+    # Add scheduler job based on schedule setting
+    if update_schedule == 'hourly':
+        scheduler.add_job(
+            check_and_update_if_needed,
+            'interval',
+            hours=1,
+            id='auto_update',
+            replace_existing=True,
+            name='Hourly auto-update check'
+        )
+        logger.info("Auto-update scheduler: Every hour")
+    elif update_schedule == 'every_6_hours':
+        scheduler.add_job(
+            check_and_update_if_needed,
+            'interval',
+            hours=6,
+            id='auto_update',
+            replace_existing=True,
+            name='Auto-update check every 6 hours'
+        )
+        logger.info("Auto-update scheduler: Every 6 hours")
+    elif update_schedule == 'weekly':
+        scheduler.add_job(
+            check_and_update_if_needed,
+            'cron',
+            day_of_week='sun',
+            hour=0, minute=0,
+            id='auto_update',
+            replace_existing=True,
+            name='Weekly auto-update check'
+        )
+        logger.info("Auto-update scheduler: Weekly (Sunday midnight)")
+    else:  # daily
+        scheduler.add_job(
+            check_and_update_if_needed,
+            'cron',
+            hour=0, minute=30,
+            id='auto_update',
+            replace_existing=True,
+            name='Daily auto-update check'
+        )
+        logger.info("Auto-update scheduler: Daily (00:30)")
+
 
 # ============================================================
 # ROUTES - Dashboard
@@ -403,6 +472,88 @@ def api_run_discovery():
     """API endpoint to manually trigger feed discovery."""
     result = run_feed_discovery()
     return jsonify(result)
+
+
+# ============================================================
+# GIT AUTO-UPDATE ROUTES
+# ============================================================
+
+@app.route('/updates')
+def updates_page():
+    """System updates configuration page."""
+    import os
+    app_path = os.path.abspath(os.path.dirname(__file__))
+    return render_template('updates.html', app_path=app_path)
+
+
+@app.route('/api/git/info')
+def api_git_info():
+    """Get Git repository information."""
+    try:
+        from git_updater import GitUpdater
+        updater = GitUpdater()
+        info = updater.get_git_info()
+        return jsonify(info)
+    except Exception as e:
+        logger.error(f"Error getting git info: {e}")
+        return jsonify({'error': str(e), 'is_git_repo': False})
+
+
+@app.route('/api/git/check-updates')
+def api_check_updates():
+    """Check if updates are available from remote repository."""
+    try:
+        from git_updater import GitUpdater
+        updater = GitUpdater()
+        result = updater.check_for_updates()
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Error checking for updates: {e}")
+        return jsonify({'available': False, 'error': str(e)})
+
+
+@app.route('/api/git/update', methods=['POST'])
+def api_perform_update():
+    """Perform git pull to update the application."""
+    try:
+        from git_updater import GitUpdater
+        updater = GitUpdater()
+        result = updater.perform_update()
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Error performing update: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@app.route('/api/git/history')
+def api_update_history():
+    """Get update history."""
+    try:
+        from git_updater import GitUpdater
+        updater = GitUpdater()
+        history = updater.get_update_history(limit=20)
+        return jsonify({'history': history})
+    except Exception as e:
+        logger.error(f"Error getting update history: {e}")
+        return jsonify({'history': [], 'error': str(e)})
+
+
+@app.route('/api/update-settings', methods=['POST'])
+def api_save_update_settings():
+    """Save auto-update settings."""
+    try:
+        settings = request.get_json()
+        for key, value in settings.items():
+            update_setting(key, value)
+
+        # Reschedule if auto-update settings changed
+        if 'auto_update_enabled' in settings or 'update_schedule' in settings:
+            setup_update_scheduler()
+
+        return jsonify({'success': True, 'message': 'Settings saved successfully'})
+    except Exception as e:
+        logger.error(f"Error saving update settings: {e}")
+        return jsonify({'success': False, 'error': str(e)})
 
 
 # ============================================================

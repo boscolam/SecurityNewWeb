@@ -72,6 +72,12 @@
                        class="{% if request.endpoint == 'settings_page' %}active{% endif %}">
                     <i class="fas fa-cog"></i> Settings
                 </a></li>
+
+                <!-- Updates: system updates and auto-update configuration -->
+                <li><a href="{{ url_for('updates_page') }}"
+                       class="{% if request.endpoint == 'updates_page' %}active{% endif %}">
+                    <i class="fas fa-sync-alt"></i> Updates
+                </a></li>
             </ul>
         </div>
     </nav>

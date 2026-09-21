@@ -162,6 +162,12 @@ def _seed_default_settings(conn):
         'hacking_always_top': ('1', 'Hacking incidents always top priority (1=on, 0=off)'),
         'dark_mode': ('0', 'Enable dark mode (1=on, 0=off)'),
         'items_per_page': ('25', 'Number of items per page'),
+        # Auto-update settings
+        'auto_update_enabled': ('false', 'Enable automatic updates from GitHub'),
+        'update_schedule': ('daily', 'Update check schedule: hourly, every_6_hours, daily, weekly'),
+        'backup_before_update': ('true', 'Backup database before updating'),
+        'restart_after_update': ('false', 'Restart application after update (requires systemd)'),
+        'notify_on_update': ('true', 'Log update notifications'),
     }
     for key, (value, desc) in defaults.items():
         cursor.execute('''

@@ -42,6 +42,13 @@ A comprehensive Flask-based web application that aggregates cybersecurity news f
   - Daily feed auto-discovery at 2 AM
   - Weekly cleanup of old news (90-day retention)
 
+- **Auto-Update System** 🆕:
+  - Automatic updates from GitHub repository
+  - Configurable schedules (hourly, daily, weekly)
+  - Automatic database backup before updates
+  - Web-based configuration interface
+  - Update history tracking
+
 - **Database**: SQLite with Write-Ahead Logging (WAL) for concurrent access
 - **Web Interface**: Responsive HTML/CSS/JavaScript dashboard
 - **Production Ready**: Apache mod_wsgi deployment support
