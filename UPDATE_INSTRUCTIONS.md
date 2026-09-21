@@ -1,6 +1,14 @@
-# Update Instructions - v1.0 → v2.1.0
+# Update Instructions - v1.0 → v2.2.0
 
-Complete guide to update your existing Cybersecurity News Dashboard to the latest version with government CERT feeds and auto-update features.
+Complete guide to update your existing Cybersecurity News Dashboard to the latest version with government CERT feeds, auto-update features, and systemd service support.
+
+---
+
+## ⚡ Quick Fix Available!
+
+**Having update issues?** See **[QUICKFIX.md](QUICKFIX.md)** for one-line solutions to common problems.
+
+**Most Common Issue**: `git stash && git pull origin main && chmod +x *.sh && ./service.sh restart`
 
 ---
 
@@ -415,23 +423,55 @@ curl http://localhost:5000/api/fetch-feeds -X POST
 
 ## ❌ Troubleshooting
 
-### Problem 1: "Git Pull Failed - Merge Conflict"
+### ⚡ Quick Fix Reference
 
-**Cause**: Local files were modified
+For common issues and one-line fixes, see **[QUICKFIX.md](QUICKFIX.md)**
 
-**Solution**:
+### Problem 1: "Git Pull Failed - Merge Conflict" ⚠️ MOST COMMON
+
+**Error Message**:
+```
+error: Your local changes to the following files would be overwritten by merge:
+    setup.sh
+Please commit your changes or stash them before you merge.
+Aborting
+```
+
+**Cause**: Local files (especially `setup.sh`) were modified
+
+**⚡ Quick Fix (One Command)**:
 ```bash
-# Stash your changes
+git stash && git pull origin main && chmod +x setup.sh service.sh
+```
+
+**Step-by-Step Solution**:
+```bash
+# 1. Stash your changes
 git stash
+# Output: Saved working directory and index state...
 
-# Pull updates
+# 2. Pull updates
 git pull origin main
+# Output: Updating ab8fef0..7981291...
 
-# Apply your changes back (optional)
-git stash pop
+# 3. Make scripts executable
+chmod +x setup.sh service.sh
 
-# Or discard local changes
+# 4. Verify update
+git log --oneline -1
+# Should show: 7981291 v2.2.0
+
+# 5. Restart application
+./service.sh restart
+```
+
+**Important**: Your database and important files are safe! They're in `.gitignore` and won't be affected.
+
+**Alternative**: If you don't need local changes:
+```bash
+# Discard all local changes (careful!)
 git reset --hard origin/main
+chmod +x setup.sh service.sh
 ```
 
 ### Problem 2: "Permission Denied"

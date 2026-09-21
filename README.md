@@ -301,11 +301,24 @@ Credits to:
 - Inspired by the need for centralized threat intelligence aggregation
 - Built for security professionals, researchers, and enthusiasts
 
-## Support
+## Support & Troubleshooting
 
-For issues, questions, or contributions:
+**Quick Fixes**: See [QUICKFIX.md](QUICKFIX.md) for one-line solutions to common issues
+
+**Documentation**:
+- [UBUNTU_INSTALL.md](UBUNTU_INSTALL.md) - Ubuntu installation guide
+- [UPDATE_INSTRUCTIONS.md](UPDATE_INSTRUCTIONS.md) - Update guide (v1.0 → v2.2.0)
+- [AUTO_UPDATE_GUIDE.md](AUTO_UPDATE_GUIDE.md) - Auto-update documentation
+- [INSTALL.md](INSTALL.md) - Detailed Apache deployment
+
+**Common Issues**:
+- Git merge conflict: `git stash && git pull origin main && chmod +x *.sh`
+- Permission denied: `chmod +x setup.sh service.sh`
+- Service won't start: `./service.sh status` and `./service.sh logs-tail`
+
+**Get Help**:
 - Open an issue on [GitHub](https://github.com/boscolam/SecurityNewWeb/issues)
-- Check [INSTALL.md](INSTALL.md) for detailed setup instructions
+- Check logs: `./service.sh logs` or `journalctl --user -u cybersec-news -f`
 
 ## Roadmap
 
