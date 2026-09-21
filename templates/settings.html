@@ -1,0 +1,236 @@
+<!-- Settings Page: application-wide configuration for the Cybersecurity News Dashboard.
+     Allows users to configure:
+     1. Feed refresh interval (how often to fetch new articles from sources)
+     2. Auto-discovery toggle (enable/disable automatic feed discovery)
+     3. Maximum news display count per page
+     4. Priority analysis schedule time
+     5. News retention period (how long to keep old articles)
+     6. Hacking incidents always-top-priority toggle
+     7. Items per page for news listing
+     8. Dark mode toggle (visual preference)
+
+     Also shows recent priority analysis logs for monitoring system behavior.
+-->
+{% extends "base.html" %}
+
+{% block title %}Settings - CyberSec News{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <!-- ============================================================
+         PAGE HEADER
+         ============================================================ -->
+    <div class="page-header">
+        <h1><i class="fas fa-cog"></i> Application Settings</h1>
+    </div>
+
+    <!-- ============================================================
+         SETTINGS FORM
+         Each setting is rendered as a form field with its current value.
+         All settings are saved at once when the form is submitted.
+         Setting keys are prefixed with "setting_" in the form to identify them.
+         ============================================================ -->
+    <div class="section">
+        <h2><i class="fas fa-sliders-h"></i> General Settings</h2>
+        <form method="POST" action="{{ url_for('settings_update') }}" class="settings-form">
+
+            <!-- Feed refresh interval: how many minutes between automatic feed fetches -->
+            <div class="setting-row">
+                <div class="setting-info">
+                    <label for="setting_refresh_interval">
+                        <i class="fas fa-sync-alt"></i> Feed Refresh Interval
+                    </label>
+                    <p class="setting-description">
+                        How often (in minutes) the system automatically fetches new articles
+                        from all enabled feed sources. Lower values = more frequent updates
+                        but more network traffic.
+                    </p>
+                </div>
+                <div class="setting-control">
+                    <input type="number" name="setting_refresh_interval"
+                           id="setting_refresh_interval"
+                           value="{{ settings.refresh_interval.value }}"
+                           min="5" max="1440">
+                    <span class="setting-unit">minutes</span>
+                </div>
+            </div>
+
+            <!-- Auto-discover feeds: enable/disable daily automatic feed discovery -->
+            <div class="setting-row">
+                <div class="setting-info">
+                    <label for="setting_auto_discover_feeds">
+                        <i class="fas fa-search-plus"></i> Auto-Discover New Feeds
+                    </label>
+                    <p class="setting-description">
+                        When enabled, the system will automatically search for new
+                        cybersecurity RSS feeds daily at 2 AM. Discovered feeds appear
+                        in the Sources page for your review and approval.
+                    </p>
+                </div>
+                <div class="setting-control">
+                    <select name="setting_auto_discover_feeds" id="setting_auto_discover_feeds">
+                        <option value="1" {% if settings.auto_discover_feeds.value == '1' %}selected{% endif %}>
+                            Enabled
+                        </option>
+                        <option value="0" {% if settings.auto_discover_feeds.value == '0' %}selected{% endif %}>
+                            Disabled
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Items per page: how many news articles to show per page -->
+            <div class="setting-row">
+                <div class="setting-info">
+                    <label for="setting_items_per_page">
+                        <i class="fas fa-list"></i> Items Per Page
+                    </label>
+                    <p class="setting-description">
+                        Number of news articles to display per page in the News list view.
+                    </p>
+                </div>
+                <div class="setting-control">
+                    <input type="number" name="setting_items_per_page"
+                           id="setting_items_per_page"
+                           value="{{ settings.items_per_page.value }}"
+                           min="10" max="100">
+                    <span class="setting-unit">items</span>
+                </div>
+            </div>
+
+            <!-- Priority analysis time: when the daily automated analysis runs -->
+            <div class="setting-row">
+                <div class="setting-info">
+                    <label for="setting_priority_analysis_time">
+                        <i class="fas fa-brain"></i> Priority Analysis Time
+                    </label>
+                    <p class="setting-description">
+                        Time (24-hour format) when the system runs daily priority rule
+                        analysis. The analysis examines recent news patterns and adjusts
+                        keyword priority scores automatically.
+                    </p>
+                </div>
+                <div class="setting-control">
+                    <input type="time" name="setting_priority_analysis_time"
+                           id="setting_priority_analysis_time"
+                           value="{{ settings.priority_analysis_time.value }}">
+                </div>
+            </div>
+
+            <!-- News retention: how many days to keep old articles before cleanup -->
+            <div class="setting-row">
+                <div class="setting-info">
+                    <label for="setting_news_retention_days">
+                        <i class="fas fa-calendar-minus"></i> News Retention Period
+                    </label>
+                    <p class="setting-description">
+                        Number of days to keep news articles in the database. Articles
+                        older than this are automatically removed during weekly cleanup
+                        (runs every Sunday at 3 AM).
+                    </p>
+                </div>
+                <div class="setting-control">
+                    <input type="number" name="setting_news_retention_days"
+                           id="setting_news_retention_days"
+                           value="{{ settings.news_retention_days.value }}"
+                           min="7" max="365">
+                    <span class="setting-unit">days</span>
+                </div>
+            </div>
+
+            <!-- Hacking always top: ensure hacking incidents are always critical priority -->
+            <div class="setting-row">
+                <div class="setting-info">
+                    <label for="setting_hacking_always_top">
+                        <i class="fas fa-skull-crossbones"></i> Hacking Incidents Top Priority
+                    </label>
+                    <p class="setting-description">
+                        When enabled, all news articles identified as hacking incidents
+                        (breaches, ransomware attacks, data leaks, etc.) are automatically
+                        given Critical priority, ensuring they always appear at the top
+                        of the dashboard and news list.
+                    </p>
+                </div>
+                <div class="setting-control">
+                    <select name="setting_hacking_always_top" id="setting_hacking_always_top">
+                        <option value="1" {% if settings.hacking_always_top.value == '1' %}selected{% endif %}>
+                            Enabled (Recommended)
+                        </option>
+                        <option value="0" {% if settings.hacking_always_top.value == '0' %}selected{% endif %}>
+                            Disabled
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Save button for all settings -->
+            <div class="setting-actions">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save"></i> Save Settings
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- ============================================================
+         RECENT ANALYSIS LOGS
+         Quick view of the most recent priority analysis runs.
+         Full history available on the Priorities page.
+         ============================================================ -->
+    <div class="section">
+        <h2><i class="fas fa-history"></i> Recent Analysis Activity</h2>
+        {% if analysis_logs %}
+        <div class="analysis-logs">
+            {% for log in analysis_logs %}
+            <div class="analysis-log-card">
+                <div class="log-header">
+                    <span class="log-date">
+                        <i class="fas fa-calendar"></i> {{ log.analysis_date }}
+                    </span>
+                    <div class="log-stats">
+                        <span class="badge badge-success">+{{ log.rules_added }}</span>
+                        <span class="badge badge-warning">~{{ log.rules_modified }}</span>
+                        <span class="badge badge-danger">-{{ log.rules_removed }}</span>
+                    </div>
+                </div>
+                <pre class="log-summary">{{ log.summary[:500] }}</pre>
+            </div>
+            {% endfor %}
+        </div>
+        <a href="{{ url_for('priorities_page') }}" class="btn btn-sm btn-outline">
+            View Full History &rarr;
+        </a>
+        {% else %}
+        <p class="text-muted">No analysis logs yet. The first analysis runs at midnight.</p>
+        {% endif %}
+    </div>
+
+    <!-- ============================================================
+         SYSTEM INFORMATION
+         Shows current system status and scheduled task information.
+         ============================================================ -->
+    <div class="section">
+        <h2><i class="fas fa-server"></i> System Information</h2>
+        <div class="system-info-grid">
+            <div class="info-item">
+                <label>Application</label>
+                <span>CyberSec News Dashboard v1.0</span>
+            </div>
+            <div class="info-item">
+                <label>Database</label>
+                <span>SQLite (local)</span>
+            </div>
+            <div class="info-item">
+                <label>Scheduled Tasks</label>
+                <span>
+                    Feed fetch: every {{ settings.refresh_interval.value }} min |
+                    Analysis: daily at {{ settings.priority_analysis_time.value }} |
+                    Discovery: daily at 02:00 |
+                    Cleanup: weekly Sunday 03:00
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

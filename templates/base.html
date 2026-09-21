@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Base template: defines the common layout, navigation, and shared assets
+         for all pages in the Cybersecurity News Dashboard application -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CyberSec News Dashboard{% endblock %}</title>
+
+    <!-- Main stylesheet for the entire application -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Font Awesome for icons used throughout the dashboard -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- ============================================================
+         TOP NAVIGATION BAR
+         Contains the app logo/title and main navigation links
+         to all major sections of the dashboard
+         ============================================================ -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <!-- Application branding / logo area -->
+            <div class="nav-brand">
+                <i class="fas fa-shield-halved"></i>
+                <span>CyberSec News</span>
+            </div>
+
+            <!-- Hamburger menu toggle for mobile responsive navigation -->
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <!-- Main navigation links - each links to a major page -->
+            <ul class="nav-links" id="navLinks">
+                <!-- Dashboard: main overview with top 10 news and stats -->
+                <li><a href="{{ url_for('dashboard') }}"
+                       class="{% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a></li>
+
+                <!-- News: full news list with all filtering capabilities -->
+                <li><a href="{{ url_for('news_list') }}"
+                       class="{% if request.endpoint == 'news_list' %}active{% endif %}">
+                    <i class="fas fa-newspaper"></i> News
+                </a></li>
+
+                <!-- CVE: focused view for vulnerability/CVE monitoring -->
+                <li><a href="{{ url_for('cve_page') }}"
+                       class="{% if request.endpoint == 'cve_page' %}active{% endif %}">
+                    <i class="fas fa-bug"></i> CVE Monitor
+                </a></li>
+
+                <!-- Sources: manage feed sources (add/edit/delete/discover) -->
+                <li><a href="{{ url_for('sources_page') }}"
+                       class="{% if request.endpoint == 'sources_page' %}active{% endif %}">
+                    <i class="fas fa-rss"></i> Sources
+                </a></li>
+
+                <!-- Priorities: manage and view priority scoring rules -->
+                <li><a href="{{ url_for('priorities_page') }}"
+                       class="{% if request.endpoint == 'priorities_page' %}active{% endif %}">
+                    <i class="fas fa-sort-amount-up"></i> Priorities
+                </a></li>
+
+                <!-- Settings: application configuration (refresh interval, etc.) -->
+                <li><a href="{{ url_for('settings_page') }}"
+                       class="{% if request.endpoint == 'settings_page' %}active{% endif %}">
+                    <i class="fas fa-cog"></i> Settings
+                </a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- ============================================================
+         MAIN CONTENT AREA
+         Each page template fills this block with its own content
+         ============================================================ -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- ============================================================
+         FOOTER
+         Shows application info and last refresh timestamp
+         ============================================================ -->
+    <footer class="footer">
+        <div class="footer-content">
+            <span>&copy; {{ now.year if now else '2024' }} CyberSec News Dashboard</span>
+            <span>|</span>
+            <span>Auto-refreshes every {{ settings.refresh_interval.value if settings else '30' }} minutes</span>
+        </div>
+    </footer>
+
+    <!-- Main JavaScript file for interactive features -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,288 @@
+<!-- Priority Rules Management Page: allows users to view, add, edit, and delete
+     the keyword-based priority scoring rules that determine news article importance.
+
+     Features:
+     1. View all priority rules (system-generated and user-defined)
+     2. Add new user-defined priority rules with keyword, level, and score
+     3. Edit existing rules (both system and user-defined)
+     4. Delete rules
+     5. View priority analysis logs (daily automated analysis results)
+
+     The system runs automated priority analysis daily at midnight (00:00).
+     This analysis examines recent news patterns and adjusts rule scores:
+     - Keywords frequently seen in hacking incidents get higher scores
+     - Keywords with no recent matches get lower scores
+     - New keywords from high-priority news are suggested as new rules
+-->
+{% extends "base.html" %}
+
+{% block title %}Priorities - CyberSec News{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <!-- ============================================================
+         PAGE HEADER
+         ============================================================ -->
+    <div class="page-header">
+        <h1><i class="fas fa-sort-amount-up"></i> Priority Rules</h1>
+        <div class="header-actions">
+            <!-- Button to manually trigger the priority analysis engine -->
+            <button class="btn btn-secondary" onclick="runAnalysis()" id="analyzeBtn">
+                <i class="fas fa-brain"></i> Run Analysis Now
+            </button>
+        </div>
+    </div>
+
+    <!-- Explanation of how the priority system works -->
+    <div class="info-box">
+        <i class="fas fa-info-circle"></i>
+        <div>
+            <strong>How Priority Scoring Works:</strong>
+            <p>Each news article is scored against these keyword rules. When an article's
+               title or summary contains a keyword, the corresponding score is applied.
+               The highest matching score determines the article's priority level.
+               Hacking incidents always receive top (critical) priority by default.</p>
+            <p><strong>Automated Analysis:</strong> Every day at midnight, the system
+               analyzes recent news patterns and adjusts scores automatically. Frequently
+               matched keywords get boosted; unused keywords get lowered. New keywords
+               discovered in hacking incidents are added automatically. You can review
+               and override any changes.</p>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         ADD NEW PRIORITY RULE FORM
+         Users can add their own keyword rules with custom priority levels.
+         ============================================================ -->
+    <div class="section">
+        <h2><i class="fas fa-plus-circle"></i> Add Priority Rule</h2>
+        <form method="POST" action="{{ url_for('priority_add') }}" class="add-form">
+            <div class="form-grid">
+                <!-- The keyword to match in news titles and summaries -->
+                <div class="form-group">
+                    <label for="keyword">Keyword</label>
+                    <input type="text" name="keyword" id="keyword" required
+                           placeholder="e.g., ransomware, zero-day">
+                </div>
+
+                <!-- Priority level label (critical/high/medium/low) -->
+                <div class="form-group">
+                    <label for="level">Priority Level</label>
+                    <select name="level" id="level" onchange="updateScore(this.value)">
+                        <option value="critical">Critical</option>
+                        <option value="high">High</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+
+                <!-- Numeric score (0-100) that determines sorting order -->
+                <div class="form-group">
+                    <label for="score">Score (0-100)</label>
+                    <input type="number" name="score" id="score" min="0" max="100" value="50">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Rule
+            </button>
+        </form>
+    </div>
+
+    <!-- ============================================================
+         PRIORITY RULES TABLE
+         Displays all rules sorted by score (highest first).
+         Shows keyword, level, score, origin (system vs user),
+         match count, and last match date.
+         Each rule can be edited inline or deleted.
+         ============================================================ -->
+    <div class="section">
+        <h2><i class="fas fa-list-ol"></i> All Priority Rules ({{ rules|length }})</h2>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Keyword</th>
+                        <th>Level</th>
+                        <th>Score</th>
+                        <th>Origin</th>
+                        <th>Match Count</th>
+                        <th>Last Match</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rule in rules %}
+                    <tr>
+                        <td><code>{{ rule.keyword }}</code></td>
+                        <td>
+                            <!-- Priority level with color-coded badge -->
+                            <span class="priority-badge"
+                                  style="background: {{ rule.level|priority_color }};">
+                                {{ rule.level|upper }}
+                            </span>
+                        </td>
+                        <td>
+                            <!-- Score as a visual bar + number -->
+                            <div class="score-bar">
+                                <div class="score-fill"
+                                     style="width: {{ rule.score }}%; background: {{ rule.level|priority_color }};">
+                                </div>
+                                <span class="score-text">{{ rule.score }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <!-- Whether the rule was system-generated or user-defined -->
+                            {% if rule.is_user_defined %}
+                            <span class="badge badge-info">User</span>
+                            {% else %}
+                            <span class="badge badge-secondary">System</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ rule.hit_count }}</td>
+                        <td>{{ rule.last_hit_date|timeago if rule.last_hit_date else 'Never' }}</td>
+                        <td class="action-cell">
+                            <!-- Edit button: toggles inline edit form -->
+                            <button class="btn btn-sm btn-outline"
+                                    onclick="toggleEditRule({{ rule.id }})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <!-- Delete button with confirmation -->
+                            <form method="POST"
+                                  action="{{ url_for('priority_delete', rule_id=rule.id) }}"
+                                  style="display:inline;"
+                                  onsubmit="return confirm('Delete rule for keyword: {{ rule.keyword }}?')">
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    <!-- Hidden inline edit form for this rule -->
+                    <tr id="edit-rule-{{ rule.id }}" class="edit-row" style="display:none;">
+                        <td colspan="7">
+                            <form method="POST"
+                                  action="{{ url_for('priority_update', rule_id=rule.id) }}"
+                                  class="inline-edit-form">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>Keyword</label>
+                                        <input type="text" name="keyword" value="{{ rule.keyword }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Level</label>
+                                        <select name="level">
+                                            <option value="critical" {% if rule.level == 'critical' %}selected{% endif %}>Critical</option>
+                                            <option value="high" {% if rule.level == 'high' %}selected{% endif %}>High</option>
+                                            <option value="medium" {% if rule.level == 'medium' %}selected{% endif %}>Medium</option>
+                                            <option value="low" {% if rule.level == 'low' %}selected{% endif %}>Low</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Score</label>
+                                        <input type="number" name="score" min="0" max="100" value="{{ rule.score }}">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-save"></i> Save
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline"
+                                        onclick="toggleEditRule({{ rule.id }})">
+                                    Cancel
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         PRIORITY ANALYSIS LOG
+         Shows the history of automated daily analysis runs.
+         Each entry records how many rules were added/modified/removed
+         and provides a detailed summary of changes made.
+         ============================================================ -->
+    <div class="section">
+        <h2><i class="fas fa-history"></i> Analysis History</h2>
+        <p class="section-description">
+            The system automatically analyzes news patterns daily at midnight (00:00)
+            and adjusts priority rules. Below are the recent analysis results.
+        </p>
+        {% if analysis_logs %}
+        <div class="analysis-logs">
+            {% for log in analysis_logs %}
+            <div class="analysis-log-card">
+                <div class="log-header">
+                    <span class="log-date">
+                        <i class="fas fa-calendar"></i> {{ log.analysis_date }}
+                    </span>
+                    <div class="log-stats">
+                        <!-- Number of new rules added by this analysis -->
+                        <span class="badge badge-success">+{{ log.rules_added }} added</span>
+                        <!-- Number of existing rules modified -->
+                        <span class="badge badge-warning">~{{ log.rules_modified }} modified</span>
+                        <!-- Number of rules removed -->
+                        <span class="badge badge-danger">-{{ log.rules_removed }} removed</span>
+                    </div>
+                </div>
+                <!-- Detailed summary of what the analysis changed and why -->
+                <pre class="log-summary">{{ log.summary }}</pre>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">No analysis has been run yet. The first analysis will run at midnight, or you can trigger it manually above.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    /* Toggle the inline edit form for a specific priority rule.
+       Each rule has a hidden edit row that appears when clicking Edit. */
+    function toggleEditRule(ruleId) {
+        const editRow = document.getElementById('edit-rule-' + ruleId);
+        if (editRow.style.display === 'none') {
+            editRow.style.display = 'table-row';
+        } else {
+            editRow.style.display = 'none';
+        }
+    }
+
+    /* Auto-update the score field when the priority level dropdown changes.
+       Provides sensible default scores for each level. */
+    function updateScore(level) {
+        const scoreField = document.getElementById('score');
+        const defaults = { 'critical': 100, 'high': 75, 'medium': 50, 'low': 25 };
+        scoreField.value = defaults[level] || 50;
+    }
+
+    /* Manually trigger the priority analysis engine via API.
+       Normally runs at midnight but can be triggered on demand. */
+    function runAnalysis() {
+        const btn = document.getElementById('analyzeBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+
+        fetch('/api/analyze', { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-brain"></i> Run Analysis Now';
+                alert(`Analysis complete!\n\nRules added: ${data.rules_added}\nRules modified: ${data.rules_modified}\nRules removed: ${data.rules_removed}`);
+                location.reload();
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-brain"></i> Run Analysis Now';
+                alert('Error: ' + err.message);
+            });
+    }
+</script>
+{% endblock %}

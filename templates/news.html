@@ -1,0 +1,252 @@
+<!-- News List Page: displays all cybersecurity news articles with comprehensive filtering.
+     Users can filter by:
+     - Region (Global, North America, Europe, Asia Pacific, China, etc.)
+     - Category (Hacking Incident, Company News, Blog, CVE, Vendor Research, etc.)
+     - Source (specific RSS feed source)
+     - Priority Level (Critical, High, Medium, Low)
+     - CVE Vendor (Cisco, Palo Alto, Fortinet, Checkpoint, Juniper, Chinese vendors)
+     - Free text search
+     - Date range
+     Also supports pagination for large result sets.
+-->
+{% extends "base.html" %}
+
+{% block title %}News - CyberSec News{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <!-- ============================================================
+         PAGE HEADER with search box
+         ============================================================ -->
+    <div class="page-header">
+        <h1><i class="fas fa-newspaper"></i> Security News</h1>
+        <span class="result-count">{{ total }} articles found</span>
+    </div>
+
+    <!-- ============================================================
+         FILTER PANEL
+         Contains all available filter options organized in a grid.
+         Filters are applied via URL query parameters using a GET form.
+         ============================================================ -->
+    <div class="filter-panel">
+        <form method="GET" action="{{ url_for('news_list') }}" id="filterForm">
+            <div class="filter-grid">
+
+                <!-- Region filter: filters by geographic region of the news source -->
+                <div class="filter-group">
+                    <label for="region"><i class="fas fa-globe"></i> Region</label>
+                    <select name="region" id="region" onchange="this.form.submit()">
+                        <option value="">All Regions</option>
+                        {% for key, label in regions.items() %}
+                        <option value="{{ key }}" {% if filters.get('region') == key %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Category filter: filters by news type (hacking, CVE, blog, etc.) -->
+                <div class="filter-group">
+                    <label for="category"><i class="fas fa-tag"></i> Category</label>
+                    <select name="category" id="category" onchange="this.form.submit()">
+                        <option value="">All Categories</option>
+                        {% for key, label in categories.items() %}
+                        <option value="{{ key }}" {% if filters.get('category') == key %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Source filter: filters by specific feed source -->
+                <div class="filter-group">
+                    <label for="source_id"><i class="fas fa-rss"></i> Source</label>
+                    <select name="source_id" id="source_id" onchange="this.form.submit()">
+                        <option value="">All Sources</option>
+                        {% for source in sources %}
+                        <option value="{{ source.id }}"
+                                {% if filters.get('source_id') == source.id %}selected{% endif %}>
+                            {{ source.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Priority filter: filters by priority level assigned by the scoring engine -->
+                <div class="filter-group">
+                    <label for="priority"><i class="fas fa-sort-amount-up"></i> Priority</label>
+                    <select name="priority" id="priority" onchange="this.form.submit()">
+                        <option value="">All Priorities</option>
+                        <option value="critical" {% if filters.get('priority_label') == 'critical' %}selected{% endif %}>
+                            Critical
+                        </option>
+                        <option value="high" {% if filters.get('priority_label') == 'high' %}selected{% endif %}>
+                            High
+                        </option>
+                        <option value="medium" {% if filters.get('priority_label') == 'medium' %}selected{% endif %}>
+                            Medium
+                        </option>
+                        <option value="low" {% if filters.get('priority_label') == 'low' %}selected{% endif %}>
+                            Low
+                        </option>
+                    </select>
+                </div>
+
+                <!-- CVE Vendor filter: filters by specific vendor CVE associations
+                     Includes Cisco, Palo Alto, Fortinet, Checkpoint, Juniper,
+                     and Chinese vendors (Qihoo 360, NSFOCUS, Antiy, Knownsec, QiAnXin) -->
+                <div class="filter-group">
+                    <label for="cve_vendor"><i class="fas fa-building"></i> CVE Vendor</label>
+                    <select name="cve_vendor" id="cve_vendor" onchange="this.form.submit()">
+                        <option value="">All Vendors</option>
+                        {% for key, keywords in cve_vendors.items() %}
+                        <option value="{{ key }}" {% if filters.get('cve_vendor') == key %}selected{% endif %}>
+                            {{ key|title }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Text search: searches across article titles and summaries -->
+                <div class="filter-group">
+                    <label for="search"><i class="fas fa-search"></i> Search</label>
+                    <input type="text" name="search" id="search"
+                           placeholder="Search news..."
+                           value="{{ filters.get('search', '') }}">
+                </div>
+            </div>
+
+            <!-- ============================================================
+                 QUICK FILTER BUTTONS
+                 Shortcut buttons for common filter combinations
+                 ============================================================ -->
+            <div class="quick-filters">
+                <!-- Show only hacking incidents (always top priority) -->
+                <a href="{{ url_for('news_list', hacking=1) }}"
+                   class="btn btn-sm {% if filters.get('is_hacking_incident') %}btn-danger{% else %}btn-outline{% endif %}">
+                    <i class="fas fa-skull-crossbones"></i> Hacking Incidents
+                </a>
+                <!-- Show only articles containing CVE identifiers -->
+                <a href="{{ url_for('news_list', cve=1) }}"
+                   class="btn btn-sm {% if filters.get('has_cve') %}btn-warning{% else %}btn-outline{% endif %}">
+                    <i class="fas fa-bug"></i> CVE Only
+                </a>
+                <!-- Clear all filters and show all news -->
+                <a href="{{ url_for('news_list') }}" class="btn btn-sm btn-outline">
+                    <i class="fas fa-times"></i> Clear Filters
+                </a>
+                <!-- Submit search form -->
+                <button type="submit" class="btn btn-sm btn-primary">
+                    <i class="fas fa-filter"></i> Apply Filters
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- ============================================================
+         NEWS ARTICLES LIST
+         Displays filtered news articles sorted by priority and date.
+         Each card shows priority badge, category, region, source,
+         publication time, summary, and CVE tags if applicable.
+         ============================================================ -->
+    <div class="news-list">
+        {% if news %}
+            {% for item in news %}
+            <div class="news-card priority-{{ item.priority_label }}">
+                <div class="news-card-header">
+                    <!-- Priority level badge with color coding -->
+                    <span class="priority-badge"
+                          style="background: {{ item.priority_label|priority_color }};">
+                        {{ item.priority_label|upper }}
+                    </span>
+
+                    {% if item.is_hacking_incident %}
+                    <span class="badge badge-danger">
+                        <i class="fas fa-skull-crossbones"></i> HACK
+                    </span>
+                    {% endif %}
+
+                    {% if item.has_cve %}
+                    <span class="badge badge-warning">
+                        <i class="fas fa-bug"></i> CVE
+                    </span>
+                    {% endif %}
+
+                    <span class="badge badge-info">{{ item.category|category_label }}</span>
+                    <span class="badge badge-secondary">
+                        <i class="fas fa-globe"></i> {{ item.region|region_label }}
+                    </span>
+                </div>
+
+                <h3 class="news-title">
+                    <a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">
+                        {{ item.title }}
+                    </a>
+                </h3>
+
+                <div class="news-meta">
+                    <span><i class="fas fa-rss"></i> {{ item.source_name or 'Unknown' }}</span>
+                    <span><i class="fas fa-clock"></i> {{ item.published_date|timeago }}</span>
+                    <span><i class="fas fa-sort-amount-up"></i> Score: {{ item.priority_score }}</span>
+                </div>
+
+                {% if item.summary %}
+                <p class="news-summary">{{ item.summary[:400] }}{% if item.summary|length > 400 %}...{% endif %}</p>
+                {% endif %}
+
+                {% if item.cve_ids %}
+                <div class="cve-tags">
+                    {% for cve in item.cve_ids.split(',')[:8] %}
+                    <span class="cve-tag">{{ cve }}</span>
+                    {% endfor %}
+                    {% if item.cve_ids.split(',')|length > 8 %}
+                    <span class="cve-tag">+{{ item.cve_ids.split(',')|length - 8 }} more</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if item.cve_vendors %}
+                <div class="vendor-tags">
+                    {% for vendor in item.cve_vendors.split(',') %}
+                    <span class="vendor-tag">{{ vendor|title }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <!-- Shown when no articles match the current filter criteria -->
+            <div class="empty-state">
+                <i class="fas fa-search"></i>
+                <h3>No news found</h3>
+                <p>Try adjusting your filters or refreshing the feeds.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- ============================================================
+         PAGINATION CONTROLS
+         Navigate between pages of results when there are many articles.
+         Shows previous/next buttons and page number indicators.
+         ============================================================ -->
+    {% if total_pages > 1 %}
+    <div class="pagination">
+        <!-- Previous page button (disabled on page 1) -->
+        {% if page > 1 %}
+        <a href="?page={{ page - 1 }}&{{ request.query_string.decode().replace('page=' ~ page, '') }}"
+           class="btn btn-sm">&laquo; Previous</a>
+        {% endif %}
+
+        <!-- Page number display -->
+        <span class="page-info">Page {{ page }} of {{ total_pages }} ({{ total }} total)</span>
+
+        <!-- Next page button (disabled on last page) -->
+        {% if page < total_pages %}
+        <a href="?page={{ page + 1 }}&{{ request.query_string.decode().replace('page=' ~ page, '') }}"
+           class="btn btn-sm">Next &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

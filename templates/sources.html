@@ -1,0 +1,330 @@
+<!-- Sources Management Page: allows users to manage all feed sources.
+     Features:
+     1. Add new feed sources (name, URL, category, feed type, region)
+     2. Edit existing sources (inline form in each source row)
+     3. Enable/disable sources without deleting them
+     4. Delete sources entirely
+     5. View auto-discovered feeds and approve/reject them
+     6. Button to manually trigger feed discovery
+
+     The system auto-discovers new cybersecurity feeds daily at 2 AM.
+     Discovered feeds appear in the "Discovered Feeds" section for user review.
+-->
+{% extends "base.html" %}
+
+{% block title %}Sources - CyberSec News{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <!-- ============================================================
+         PAGE HEADER with discovery trigger button
+         ============================================================ -->
+    <div class="page-header">
+        <h1><i class="fas fa-rss"></i> Feed Sources</h1>
+        <div class="header-actions">
+            <!-- Button to manually trigger auto-discovery of new feeds -->
+            <button class="btn btn-secondary" onclick="discoverFeeds()" id="discoverBtn">
+                <i class="fas fa-search-plus"></i> Discover New Feeds
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         ADD NEW SOURCE FORM
+         Form to manually add a new RSS feed or web scraping source.
+         Users specify name, URL, category, feed type, and region.
+         ============================================================ -->
+    <div class="section">
+        <h2><i class="fas fa-plus-circle"></i> Add New Source</h2>
+        <form method="POST" action="{{ url_for('source_add') }}" class="add-form">
+            <div class="form-grid">
+                <!-- Source display name -->
+                <div class="form-group">
+                    <label for="name">Source Name</label>
+                    <input type="text" name="name" id="name" required
+                           placeholder="e.g., My Security Blog">
+                </div>
+
+                <!-- Feed URL (RSS/Atom feed URL or web page URL for scraping) -->
+                <div class="form-group">
+                    <label for="url">Feed URL</label>
+                    <input type="url" name="url" id="url" required
+                           placeholder="https://example.com/feed/">
+                </div>
+
+                <!-- Category: what type of content does this source provide -->
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select name="category" id="category">
+                        {% for key, label in categories.items() %}
+                        <option value="{{ key }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Feed type: how to fetch content from this source -->
+                <div class="form-group">
+                    <label for="feed_type">Feed Type</label>
+                    <select name="feed_type" id="feed_type">
+                        {% for key, label in feed_types.items() %}
+                        <option value="{{ key }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Region: geographic region this source covers -->
+                <div class="form-group">
+                    <label for="region">Region</label>
+                    <select name="region" id="region">
+                        {% for key, label in regions.items() %}
+                        <option value="{{ key }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Whether this source is enabled and will be fetched -->
+                <div class="form-group">
+                    <label for="enabled">Enabled</label>
+                    <select name="enabled" id="enabled">
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Source
+            </button>
+        </form>
+    </div>
+
+    <!-- ============================================================
+         EXISTING SOURCES TABLE
+         Lists all configured feed sources with editing capabilities.
+         Shows: name, URL, category, type, region, status, last fetch time.
+         Each row has edit and delete actions.
+         ============================================================ -->
+    <div class="section">
+        <h2><i class="fas fa-list"></i> Active Sources ({{ sources|length }})</h2>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Type</th>
+                        <th>Region</th>
+                        <th>Status</th>
+                        <th>Last Fetched</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for source in sources %}
+                    <tr class="{% if not source.enabled %}disabled-row{% endif %}">
+                        <td>
+                            <!-- Source name with truncated URL shown below -->
+                            <strong>{{ source.name }}</strong>
+                            <br><small class="text-muted">{{ source.url[:60] }}{% if source.url|length > 60 %}...{% endif %}</small>
+                            {% if source.auto_discovered %}
+                            <span class="badge badge-info" title="Automatically discovered by the system">Auto</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ source.category|category_label }}</td>
+                        <td>{{ source.feed_type }}</td>
+                        <td>{{ source.region|region_label }}</td>
+                        <td>
+                            {% if source.enabled %}
+                            <span class="status-badge status-active">Active</span>
+                            {% else %}
+                            <span class="status-badge status-disabled">Disabled</span>
+                            {% endif %}
+                            {% if source.fetch_error %}
+                            <span class="status-badge status-error" title="{{ source.fetch_error }}">Error</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ source.last_fetched|timeago if source.last_fetched else 'Never' }}</td>
+                        <td class="action-cell">
+                            <!-- Edit button: toggles inline edit form for this source -->
+                            <button class="btn btn-sm btn-outline"
+                                    onclick="toggleEditSource({{ source.id }})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <!-- Delete button: removes this source (with confirmation) -->
+                            <form method="POST"
+                                  action="{{ url_for('source_delete', source_id=source.id) }}"
+                                  style="display:inline;"
+                                  onsubmit="return confirm('Delete source {{ source.name }}?')">
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    <!-- Hidden inline edit form row for this source.
+                         Shown/hidden by clicking the edit button above. -->
+                    <tr id="edit-{{ source.id }}" class="edit-row" style="display:none;">
+                        <td colspan="7">
+                            <form method="POST"
+                                  action="{{ url_for('source_update', source_id=source.id) }}"
+                                  class="inline-edit-form">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>Name</label>
+                                        <input type="text" name="name" value="{{ source.name }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>URL</label>
+                                        <input type="url" name="url" value="{{ source.url }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Category</label>
+                                        <select name="category">
+                                            {% for key, label in categories.items() %}
+                                            <option value="{{ key }}"
+                                                    {% if source.category == key %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Type</label>
+                                        <select name="feed_type">
+                                            {% for key, label in feed_types.items() %}
+                                            <option value="{{ key }}"
+                                                    {% if source.feed_type == key %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Region</label>
+                                        <select name="region">
+                                            {% for key, label in regions.items() %}
+                                            <option value="{{ key }}"
+                                                    {% if source.region == key %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Enabled</label>
+                                        <select name="enabled">
+                                            <option value="1" {% if source.enabled %}selected{% endif %}>Yes</option>
+                                            <option value="0" {% if not source.enabled %}selected{% endif %}>No</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-save"></i> Save Changes
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline"
+                                        onclick="toggleEditSource({{ source.id }})">
+                                    Cancel
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         DISCOVERED FEEDS SECTION
+         Shows feeds that were automatically discovered by the system.
+         Users can approve (add to active sources) or reject each one.
+         Discovery runs daily at 2 AM and can be triggered manually.
+         ============================================================ -->
+    {% if discovered %}
+    <div class="section">
+        <h2><i class="fas fa-magic"></i> Auto-Discovered Feeds ({{ discovered|length }})</h2>
+        <p class="section-description">
+            <!-- Explanation of how auto-discovery works -->
+            These feeds were automatically discovered by scanning known cybersecurity
+            aggregator sites and checking links in existing sources. Review and approve
+            the ones you'd like to add to your active feed list.
+        </p>
+        <div class="discovered-grid">
+            {% for feed in discovered %}
+            <div class="discovered-card {% if feed.approved %}approved{% endif %}">
+                <h4>{{ feed.name }}</h4>
+                <p class="text-muted">{{ feed.url[:80] }}{% if feed.url|length > 80 %}...{% endif %}</p>
+                <div class="discovered-meta">
+                    <span class="badge badge-info">{{ feed.category }}</span>
+                    <span class="badge badge-secondary">{{ feed.region|region_label }}</span>
+                    <span class="text-muted">Found via: {{ feed.discovered_from }}</span>
+                </div>
+                {% if not feed.approved %}
+                <div class="discovered-actions">
+                    <!-- Approve: adds this feed to active sources -->
+                    <form method="POST"
+                          action="{{ url_for('discovered_approve', feed_id=feed.id) }}"
+                          style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-success">
+                            <i class="fas fa-check"></i> Approve
+                        </button>
+                    </form>
+                    <!-- Reject: removes this discovered feed -->
+                    <form method="POST"
+                          action="{{ url_for('discovered_reject', feed_id=feed.id) }}"
+                          style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            <i class="fas fa-times"></i> Reject
+                        </button>
+                    </form>
+                </div>
+                {% else %}
+                <span class="status-badge status-active">Approved</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    /* Toggle the visibility of the inline edit form for a specific source.
+       Each source row has a hidden edit form that appears when clicking Edit. */
+    function toggleEditSource(sourceId) {
+        const editRow = document.getElementById('edit-' + sourceId);
+        if (editRow.style.display === 'none') {
+            editRow.style.display = 'table-row';
+        } else {
+            editRow.style.display = 'none';
+        }
+    }
+
+    /* Manually trigger the feed auto-discovery process via the API.
+       Normally runs automatically at 2 AM daily. */
+    function discoverFeeds() {
+        const btn = document.getElementById('discoverBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Discovering...';
+
+        fetch('/api/discover', { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-search-plus"></i> Discover New Feeds';
+                alert(`Discovery complete! Found ${data.discovered} new feed(s).`);
+                location.reload();
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-search-plus"></i> Discover New Feeds';
+                alert('Error during discovery: ' + err.message);
+            });
+    }
+</script>
+{% endblock %}
