@@ -112,33 +112,43 @@
                      category, region, time ago, and summary text -->
                 <div class="news-card priority-{{ item.priority_label }}">
                     <div class="news-card-header">
-                        <!-- Priority badge: colored by priority level (critical/high/medium/low) -->
-                        <span class="priority-badge"
-                              style="background: {{ item.priority_label|priority_color }};">
+                        <!-- Priority badge: colored by priority level - CLICKABLE -->
+                        <span class="priority-badge clickable"
+                              style="background: {{ item.priority_label|priority_color }};"
+                              onclick="filterByPriority('{{ item.priority_label }}')"
+                              title="Click to filter by {{ item.priority_label }} priority">
                             {{ item.priority_label|upper }}
                         </span>
 
-                        <!-- If this is a hacking incident, show a red alert badge -->
+                        <!-- If this is a hacking incident, show a red alert badge - CLICKABLE -->
                         {% if item.is_hacking_incident %}
-                        <span class="badge badge-danger">
+                        <span class="badge badge-danger clickable"
+                              onclick="filterByHacking()"
+                              title="Click to show only hacking incidents">
                             <i class="fas fa-skull-crossbones"></i> HACK
                         </span>
                         {% endif %}
 
-                        <!-- If this article contains CVE identifiers, show a warning badge -->
+                        <!-- If this article contains CVE identifiers, show a warning badge - CLICKABLE -->
                         {% if item.has_cve %}
-                        <span class="badge badge-warning">
+                        <span class="badge badge-warning clickable"
+                              onclick="filterByCVE()"
+                              title="Click to show only CVE articles">
                             <i class="fas fa-bug"></i> CVE
                         </span>
                         {% endif %}
 
-                        <!-- Category label (e.g., Web News, Blog, Vendor Research) -->
-                        <span class="badge badge-info">
+                        <!-- Category label - CLICKABLE -->
+                        <span class="badge badge-info clickable"
+                              onclick="filterByCategory('{{ item.category }}')"
+                              title="Click to filter by {{ item.category|category_label }}">
                             {{ item.category|category_label }}
                         </span>
 
-                        <!-- Region label (e.g., Global, North America, Europe) -->
-                        <span class="badge badge-secondary">
+                        <!-- Region label - CLICKABLE -->
+                        <span class="badge badge-secondary clickable"
+                              onclick="filterByRegion('{{ item.region }}')"
+                              title="Click to filter by {{ item.region|region_label }}">
                             <i class="fas fa-globe"></i> {{ item.region|region_label }}
                         </span>
                     </div>
@@ -152,7 +162,11 @@
 
                     <!-- News metadata: source name and publication time -->
                     <div class="news-meta">
-                        <span><i class="fas fa-rss"></i> {{ item.source_name or 'Unknown' }}</span>
+                        <span class="clickable source-link"
+                              onclick="filterBySource({{ item.source_id }})"
+                              title="Click to show news from {{ item.source_name }}">
+                            <i class="fas fa-rss"></i> {{ item.source_name or 'Unknown' }}
+                        </span>
                         <span><i class="fas fa-clock"></i> {{ item.published_date|timeago }}</span>
                         <!-- Priority score number for detailed view -->
                         <span><i class="fas fa-sort-amount-up"></i> Score: {{ item.priority_score }}</span>
@@ -163,11 +177,15 @@
                     <p class="news-summary">{{ item.summary[:300] }}{% if item.summary|length > 300 %}...{% endif %}</p>
                     {% endif %}
 
-                    <!-- Show matched CVE IDs if any were found in the article -->
+                    <!-- Show matched CVE IDs if any were found in the article - CLICKABLE -->
                     {% if item.cve_ids %}
                     <div class="cve-tags">
                         {% for cve in item.cve_ids.split(',')[:5] %}
-                        <span class="cve-tag">{{ cve }}</span>
+                        <span class="cve-tag clickable"
+                              onclick="searchFor('{{ cve }}')"
+                              title="Click to search for {{ cve }}">
+                            {{ cve }}
+                        </span>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -271,5 +289,67 @@
                 alert('Error running analysis: ' + err.message);
             });
     }
+
+    // ============================================================
+    // CLICKABLE BADGE FILTER FUNCTIONS
+    // These functions redirect to /news with appropriate filters
+    // ============================================================
+
+    /**
+     * Filter news by priority level
+     */
+    function filterByPriority(priority) {
+        window.location.href = `/news?priority=${priority}`;
+    }
+
+    /**
+     * Filter news by category
+     */
+    function filterByCategory(category) {
+        window.location.href = `/news?category=${category}`;
+    }
+
+    /**
+     * Filter news by region
+     */
+    function filterByRegion(region) {
+        window.location.href = `/news?region=${region}`;
+    }
+
+    /**
+     * Filter news by source
+     */
+    function filterBySource(sourceId) {
+        window.location.href = `/news?source_id=${sourceId}`;
+    }
+
+    /**
+     * Show only hacking incidents
+     */
+    function filterByHacking() {
+        window.location.href = `/news?hacking=1`;
+    }
+
+    /**
+     * Show only articles with CVE identifiers
+     */
+    function filterByCVE() {
+        window.location.href = `/news?cve=1`;
+    }
+
+    /**
+     * Search for specific text (e.g., CVE ID)
+     */
+    function searchFor(searchTerm) {
+        window.location.href = `/news?search=${encodeURIComponent(searchTerm)}`;
+    }
+
+    // Add visual feedback on hover
+    document.addEventListener('DOMContentLoaded', function() {
+        const clickableElements = document.querySelectorAll('.clickable');
+        clickableElements.forEach(el => {
+            el.style.cursor = 'pointer';
+        });
+    });
 </script>
 {% endblock %}

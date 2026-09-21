@@ -107,13 +107,17 @@
             {% for item in news %}
             <div class="news-card priority-{{ item.priority_label }}">
                 <div class="news-card-header">
-                    <span class="priority-badge"
-                          style="background: {{ item.priority_label|priority_color }};">
+                    <span class="priority-badge clickable"
+                          style="background: {{ item.priority_label|priority_color }};"
+                          onclick="filterByPriority('{{ item.priority_label }}')"
+                          title="Click to filter by {{ item.priority_label }} priority">
                         {{ item.priority_label|upper }}
                     </span>
 
                     {% if item.is_hacking_incident %}
-                    <span class="badge badge-danger">
+                    <span class="badge badge-danger clickable"
+                          onclick="filterByHacking()"
+                          title="Click to show only hacking incidents">
                         <i class="fas fa-skull-crossbones"></i> HACK
                     </span>
                     {% endif %}
@@ -130,7 +134,11 @@
                 </h3>
 
                 <div class="news-meta">
-                    <span><i class="fas fa-rss"></i> {{ item.source_name or 'Unknown' }}</span>
+                    <span class="clickable source-link"
+                          onclick="filterBySource({{ item.source_id }})"
+                          title="Click to show news from {{ item.source_name }}">
+                        <i class="fas fa-rss"></i> {{ item.source_name or 'Unknown' }}
+                    </span>
                     <span><i class="fas fa-clock"></i> {{ item.published_date|timeago }}</span>
                 </div>
 
@@ -142,7 +150,11 @@
                 {% if item.cve_ids %}
                 <div class="cve-tags">
                     {% for cve in item.cve_ids.split(',') %}
-                    <span class="cve-tag">{{ cve }}</span>
+                    <span class="cve-tag clickable"
+                          onclick="searchFor('{{ cve }}')"
+                          title="Click to search for {{ cve }}">
+                        {{ cve }}
+                    </span>
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -151,7 +163,9 @@
                 {% if item.cve_vendors %}
                 <div class="vendor-tags">
                     {% for vendor in item.cve_vendors.split(',') %}
-                    <span class="vendor-tag">
+                    <span class="vendor-tag clickable"
+                          onclick="filterByVendor('{{ vendor }}')"
+                          title="Click to filter by {{ vendor|title }}">
                         <i class="fas fa-building"></i> {{ vendor|title }}
                     </span>
                     {% endfor %}
@@ -183,4 +197,56 @@
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// ============================================================
+// CLICKABLE BADGE FILTER FUNCTIONS FOR CVE PAGE
+// These functions redirect to /news or /cve with appropriate filters
+// ============================================================
+
+/**
+ * Filter news by priority level
+ */
+function filterByPriority(priority) {
+    window.location.href = `/news?priority=${priority}&cve=1`;
+}
+
+/**
+ * Filter news by source
+ */
+function filterBySource(sourceId) {
+    window.location.href = `/news?source_id=${sourceId}&cve=1`;
+}
+
+/**
+ * Filter news by CVE vendor
+ */
+function filterByVendor(vendor) {
+    window.location.href = `/cve?vendor=${vendor.toLowerCase()}`;
+}
+
+/**
+ * Show only hacking incidents
+ */
+function filterByHacking() {
+    window.location.href = `/news?hacking=1&cve=1`;
+}
+
+/**
+ * Search for specific text (e.g., CVE ID)
+ */
+function searchFor(searchTerm) {
+    window.location.href = `/cve?search=${encodeURIComponent(searchTerm)}`;
+}
+
+// Add visual feedback on hover
+document.addEventListener('DOMContentLoaded', function() {
+    const clickableElements = document.querySelectorAll('.clickable');
+    clickableElements.forEach(el => {
+        el.style.cursor = 'pointer';
+    });
+});
+</script>
 {% endblock %}

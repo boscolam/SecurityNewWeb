@@ -2,6 +2,152 @@
 
 All notable changes to the Cybersecurity News Dashboard will be documented in this file.
 
+## [2.4.0] - 2026-09-22
+
+### Added - Interactive UI with Clickable Badges & Filters
+
+Major UI enhancement making all badges, tags, and metadata clickable for instant filtering.
+
+#### Clickable Elements
+- **Priority Badges**: Click to filter by priority level (Critical, High, Medium, Low)
+- **Category Badges**: Click to filter by category (Web News, Blog, Vendor Research, Government, CVE, etc.)
+- **Region Badges**: Click to filter by geographic region
+- **Hacking Incident Badge**: Click to show only hacking incidents
+- **CVE Badge**: Click to show only CVE-related articles
+- **Source Names**: Click to filter news from specific source
+- **CVE Tags**: Click to search for specific CVE ID
+- **Vendor Tags**: Click to filter by vendor (Cisco, Palo Alto, Fortinet, etc.)
+
+#### Visual Enhancements
+- **Hover Effects**: All clickable elements show visual feedback
+- **Transform Animation**: Elements lift on hover (translateY -2px)
+- **Glow Effects**: Color-coded shadows on hover
+- **Cursor Pointer**: Clear indication of clickability
+- **Ripple Effect**: Badge click animation
+- **Tooltips**: Descriptive hints on hover
+- **Focus States**: Accessibility-friendly keyboard navigation
+- **Mobile Optimized**: Larger touch targets on mobile devices
+
+#### CSS Features
+- **Dynamic Shadows**: Each badge type has unique hover glow
+  - Critical/High priority: Red glow
+  - Medium priority: Yellow glow
+  - Low priority: Green glow
+  - Info badges: Blue glow
+- **Scale Transform**: Badges grow slightly on hover (1.05x)
+- **Smooth Transitions**: 0.2s ease for all animations
+- **Ripple Animation**: After-pseudo-element creates ripple effect
+- **Click Hint Animation**: Pulse effect on focus
+- **Loading States**: Spinner animation for async operations
+
+#### JavaScript Functions
+Added filter functions to all pages:
+- `filterByPriority(priority)` - Filter by priority level
+- `filterByCategory(category)` - Filter by news category
+- `filterByRegion(region)` - Filter by geographic region
+- `filterBySource(sourceId)` - Filter by specific source
+- `filterByVendor(vendor)` - Filter by CVE vendor
+- `filterByHacking()` - Show only hacking incidents
+- `filterByCVE()` - Show only CVE articles
+- `searchFor(term)` - Search for specific text/CVE
+
+#### Pages Enhanced
+1. **News Page** (`/news`):
+   - All badges clickable
+   - CVE tags search on click
+   - Vendor tags filter on click
+   - Source names filter on click
+   - Preserves existing filters when adding new ones
+
+2. **Dashboard** (`/`):
+   - Top 10 news with clickable badges
+   - Redirects to /news with appropriate filters
+   - Stats cards unchanged (already had links)
+
+3. **CVE Monitor** (`/cve`):
+   - Priority badges filter CVE news
+   - Vendor tags filter by vendor
+   - CVE tags search within CVE page
+   - Source names filter CVE news
+
+#### CSS Additions
+- **158 lines** of new CSS in `style.css`
+- Comprehensive hover states for all clickable elements
+- Mobile-responsive touch targets (min 32px height)
+- Accessibility focus indicators
+- Loading state animations
+- Keyboard navigation support
+
+#### User Experience
+- **One-Click Filtering**: No need to use filter dropdowns
+- **Contextual Navigation**: Click on what you see to explore more
+- **Visual Feedback**: Immediate hover response
+- **Intuitive**: Natural expectation that badges are clickable
+- **Fast**: Direct URL manipulation, no AJAX delays
+- **Mobile-Friendly**: Larger touch targets for mobile users
+
+#### Accessibility
+- **ARIA-friendly**: Focus visible indicators
+- **Keyboard Navigation**: Tab through clickable elements
+- **Screen Reader**: Title attributes provide context
+- **High Contrast**: Clear visual distinction
+- **Focus Rings**: 3px outline on focus-visible
+
+#### Examples
+
+**Click a Priority Badge**:
+```
+Click "HIGH" → Redirects to: /news?priority=high
+```
+
+**Click a Category Badge**:
+```
+Click "Vendor Research" → /news?category=vendor_research
+```
+
+**Click a CVE Tag**:
+```
+Click "CVE-2024-1234" → /news?search=CVE-2024-1234
+```
+
+**Click a Source Name**:
+```
+Click "The Hacker News" → /news?source_id=1
+```
+
+**Click a Vendor Tag**:
+```
+Click "Cisco" → /cve?vendor=cisco
+```
+
+#### Technical Implementation
+- **Pure JavaScript**: No jQuery or external libraries
+- **URL Manipulation**: Uses URL API for clean parameter handling
+- **Page Reset**: Automatically resets to page 1 on filter change
+- **Parameter Preservation**: Maintains existing filters when stacking
+- **Lightweight**: Minimal performance impact
+- **Cross-Browser**: Works on all modern browsers
+
+#### Benefits
+✅ **Faster Navigation**: One click instead of dropdown selection  
+✅ **Better UX**: Intuitive, natural interaction  
+✅ **Visual Polish**: Professional animations and effects  
+✅ **Accessibility**: Full keyboard and screen reader support  
+✅ **Mobile Optimized**: Touch-friendly interface  
+✅ **Consistent**: Same behavior across all pages  
+✅ **Discoverable**: Visual cues indicate clickability  
+
+### Modified
+- templates/news.html: Added clickable badges and JavaScript functions
+- templates/dashboard.html: Added clickable badges and JavaScript functions
+- templates/cve.html: Added clickable badges and JavaScript functions
+- static/css/style.css: Added 158 lines of clickable element styles
+- VERSION: Updated to 2.4.0
+- README.md: Updated version badge
+- CHANGELOG.md: Documented v2.4.0
+
+---
+
 ## [2.3.2] - 2026-09-22
 
 ### Fixed - URL Length Issues & Navigation Reorganization

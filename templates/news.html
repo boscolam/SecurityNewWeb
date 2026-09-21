@@ -155,26 +155,38 @@
             {% for item in news %}
             <div class="news-card priority-{{ item.priority_label }}">
                 <div class="news-card-header">
-                    <!-- Priority level badge with color coding -->
-                    <span class="priority-badge"
-                          style="background: {{ item.priority_label|priority_color }};">
+                    <!-- Priority level badge with color coding - CLICKABLE -->
+                    <span class="priority-badge clickable"
+                          style="background: {{ item.priority_label|priority_color }};"
+                          onclick="filterByPriority('{{ item.priority_label }}')"
+                          title="Click to filter by {{ item.priority_label }} priority">
                         {{ item.priority_label|upper }}
                     </span>
 
                     {% if item.is_hacking_incident %}
-                    <span class="badge badge-danger">
+                    <span class="badge badge-danger clickable"
+                          onclick="filterByHacking()"
+                          title="Click to show only hacking incidents">
                         <i class="fas fa-skull-crossbones"></i> HACK
                     </span>
                     {% endif %}
 
                     {% if item.has_cve %}
-                    <span class="badge badge-warning">
+                    <span class="badge badge-warning clickable"
+                          onclick="filterByCVE()"
+                          title="Click to show only CVE articles">
                         <i class="fas fa-bug"></i> CVE
                     </span>
                     {% endif %}
 
-                    <span class="badge badge-info">{{ item.category|category_label }}</span>
-                    <span class="badge badge-secondary">
+                    <span class="badge badge-info clickable"
+                          onclick="filterByCategory('{{ item.category }}')"
+                          title="Click to filter by {{ item.category|category_label }}">
+                        {{ item.category|category_label }}
+                    </span>
+                    <span class="badge badge-secondary clickable"
+                          onclick="filterByRegion('{{ item.region }}')"
+                          title="Click to filter by {{ item.region|region_label }}">
                         <i class="fas fa-globe"></i> {{ item.region|region_label }}
                     </span>
                 </div>
@@ -186,7 +198,11 @@
                 </h3>
 
                 <div class="news-meta">
-                    <span><i class="fas fa-rss"></i> {{ item.source_name or 'Unknown' }}</span>
+                    <span class="clickable source-link"
+                          onclick="filterBySource({{ item.source_id }})"
+                          title="Click to show news from {{ item.source_name }}">
+                        <i class="fas fa-rss"></i> {{ item.source_name or 'Unknown' }}
+                    </span>
                     <span><i class="fas fa-clock"></i> {{ item.published_date|timeago }}</span>
                     <span><i class="fas fa-sort-amount-up"></i> Score: {{ item.priority_score }}</span>
                 </div>
@@ -198,7 +214,11 @@
                 {% if item.cve_ids %}
                 <div class="cve-tags">
                     {% for cve in item.cve_ids.split(',')[:8] %}
-                    <span class="cve-tag">{{ cve }}</span>
+                    <span class="cve-tag clickable"
+                          onclick="searchFor('{{ cve }}')"
+                          title="Click to search for {{ cve }}">
+                        {{ cve }}
+                    </span>
                     {% endfor %}
                     {% if item.cve_ids.split(',')|length > 8 %}
                     <span class="cve-tag">+{{ item.cve_ids.split(',')|length - 8 }} more</span>
@@ -209,7 +229,11 @@
                 {% if item.cve_vendors %}
                 <div class="vendor-tags">
                     {% for vendor in item.cve_vendors.split(',') %}
-                    <span class="vendor-tag">{{ vendor|title }}</span>
+                    <span class="vendor-tag clickable"
+                          onclick="filterByVendor('{{ vendor }}')"
+                          title="Click to filter by {{ vendor|title }}">
+                        {{ vendor|title }}
+                    </span>
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -249,4 +273,109 @@
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// ============================================================
+// CLICKABLE BADGE FILTER FUNCTIONS
+// These functions allow users to click on badges, tags, and
+// metadata to quickly filter the news list
+// ============================================================
+
+/**
+ * Filter news by priority level
+ * @param {string} priority - Priority level (critical, high, medium, low)
+ */
+function filterByPriority(priority) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('priority', priority);
+    url.searchParams.delete('page'); // Reset to page 1
+    window.location.href = url.toString();
+}
+
+/**
+ * Filter news by category
+ * @param {string} category - Category key (e.g., 'web_news', 'blog', 'vendor_research')
+ */
+function filterByCategory(category) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('category', category);
+    url.searchParams.delete('page');
+    window.location.href = url.toString();
+}
+
+/**
+ * Filter news by region
+ * @param {string} region - Region key (e.g., 'global', 'north_america', 'europe')
+ */
+function filterByRegion(region) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('region', region);
+    url.searchParams.delete('page');
+    window.location.href = url.toString();
+}
+
+/**
+ * Filter news by source
+ * @param {number} sourceId - Source ID from database
+ */
+function filterBySource(sourceId) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('source_id', sourceId);
+    url.searchParams.delete('page');
+    window.location.href = url.toString();
+}
+
+/**
+ * Filter news by CVE vendor
+ * @param {string} vendor - Vendor name (e.g., 'cisco', 'paloalto', 'fortinet')
+ */
+function filterByVendor(vendor) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('cve_vendor', vendor.toLowerCase());
+    url.searchParams.delete('page');
+    window.location.href = url.toString();
+}
+
+/**
+ * Show only hacking incidents
+ */
+function filterByHacking() {
+    const url = new URL(window.location.href);
+    url.searchParams.set('hacking', '1');
+    url.searchParams.delete('page');
+    window.location.href = url.toString();
+}
+
+/**
+ * Show only articles with CVE identifiers
+ */
+function filterByCVE() {
+    const url = new URL(window.location.href);
+    url.searchParams.set('cve', '1');
+    url.searchParams.delete('page');
+    window.location.href = url.toString();
+}
+
+/**
+ * Search for specific text (e.g., CVE ID)
+ * @param {string} searchTerm - Text to search for
+ */
+function searchFor(searchTerm) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('search', searchTerm);
+    url.searchParams.delete('page');
+    window.location.href = url.toString();
+}
+
+// Add visual feedback on hover
+document.addEventListener('DOMContentLoaded', function() {
+    // Add tooltip enhancement
+    const clickableElements = document.querySelectorAll('.clickable');
+    clickableElements.forEach(el => {
+        el.style.cursor = 'pointer';
+    });
+});
+</script>
 {% endblock %}
