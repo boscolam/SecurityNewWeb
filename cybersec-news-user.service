@@ -1,0 +1,46 @@
+# Systemd USER service file for Cybersecurity News Dashboard
+# Use this for home directory installations (non-root)
+#
+# Installation:
+#   mkdir -p ~/.config/systemd/user/
+#   cp cybersec-news-user.service ~/.config/systemd/user/cybersec-news.service
+#
+#   # Edit the file to update paths (replace YOUR_USERNAME)
+#   nano ~/.config/systemd/user/cybersec-news.service
+#
+#   systemctl --user daemon-reload
+#   systemctl --user enable cybersec-news
+#   systemctl --user start cybersec-news
+#
+#   # Enable linger (service starts on boot without login)
+#   sudo loginctl enable-linger $USER
+#
+# Management:
+#   systemctl --user status cybersec-news
+#   systemctl --user restart cybersec-news
+#   systemctl --user stop cybersec-news
+#   journalctl --user -u cybersec-news -f
+
+[Unit]
+Description=Cybersecurity News Dashboard (User Service)
+Documentation=https://github.com/boscolam/SecurityNewWeb
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/SecurityNewWeb
+Environment="PATH=%h/SecurityNewWeb/venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONUNBUFFERED=1"
+ExecStart=%h/SecurityNewWeb/venv/bin/python3 app.py
+
+# Restart behavior
+Restart=always
+RestartSec=10
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cybersec-news
+
+[Install]
+WantedBy=default.target

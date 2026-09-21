@@ -1,0 +1,52 @@
+# Systemd service file for Cybersecurity News Dashboard
+# Copy this file to /etc/systemd/system/cybersec-news.service
+#
+# Installation:
+#   sudo cp cybersec-news.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable cybersec-news
+#   sudo systemctl start cybersec-news
+#
+# Management:
+#   sudo systemctl status cybersec-news
+#   sudo systemctl restart cybersec-news
+#   sudo systemctl stop cybersec-news
+#   sudo journalctl -u cybersec-news -f
+
+[Unit]
+Description=Cybersecurity News Dashboard
+Documentation=https://github.com/boscolam/SecurityNewWeb
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/cybersec-news
+Environment="PATH=/var/www/cybersec-news/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Environment="PYTHONUNBUFFERED=1"
+ExecStart=/var/www/cybersec-news/venv/bin/python3 app.py
+
+# Restart behavior
+Restart=always
+RestartSec=10
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/cybersec-news
+
+# Resource limits
+LimitNOFILE=65535
+MemoryLimit=512M
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cybersec-news
+
+[Install]
+WantedBy=multi-user.target

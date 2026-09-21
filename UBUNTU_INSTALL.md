@@ -66,10 +66,135 @@ http://YOUR_SERVER_IP:5000
 ## 🎯 That's It! You're Done!
 
 The application will:
-- ✅ Initialize the database with 90+ RSS feeds
+- ✅ Initialize the database with 140+ RSS feeds
 - ✅ Start fetching cybersecurity news automatically
 - ✅ Run background tasks for feed updates
 - ✅ Display the dashboard on port 5000
+
+---
+
+## 🔄 Run as Systemd Service (Recommended)
+
+Instead of running manually, install as a background service that starts automatically on boot.
+
+### Quick Service Installation
+
+```bash
+cd ~/SecurityNewWeb
+
+# Install as user service (runs under your account)
+./setup.sh --service
+
+# OR install as system service (runs on boot, requires sudo)
+sudo ./setup.sh --system-service
+```
+
+### Manual Service Installation
+
+#### **Option A: User Service** (Recommended for home directory)
+
+```bash
+# 1. Create systemd user directory
+mkdir -p ~/.config/systemd/user/
+
+# 2. Copy service file
+cp cybersec-news-user.service ~/.config/systemd/user/cybersec-news.service
+
+# 3. Update paths in service file (if not in ~/SecurityNewWeb)
+nano ~/.config/systemd/user/cybersec-news.service
+# Edit WorkingDirectory and ExecStart paths
+
+# 4. Reload systemd
+systemctl --user daemon-reload
+
+# 5. Enable service (start on login)
+systemctl --user enable cybersec-news
+
+# 6. Start service now
+systemctl --user start cybersec-news
+
+# 7. Enable linger (optional - runs even when not logged in)
+sudo loginctl enable-linger $USER
+
+# 8. Check status
+systemctl --user status cybersec-news
+```
+
+#### **Option B: System Service** (For /var/www installations)
+
+```bash
+# 1. Copy service file
+sudo cp cybersec-news.service /etc/systemd/system/
+
+# 2. Edit service file with correct paths
+sudo nano /etc/systemd/system/cybersec-news.service
+# Update WorkingDirectory and ExecStart paths
+# Update User if not using www-data
+
+# 3. Reload systemd
+sudo systemctl daemon-reload
+
+# 4. Enable service (start on boot)
+sudo systemctl enable cybersec-news
+
+# 5. Start service now
+sudo systemctl start cybersec-news
+
+# 6. Check status
+sudo systemctl status cybersec-news
+```
+
+### Service Management Commands
+
+**User Service:**
+```bash
+# Start/Stop/Restart
+systemctl --user start cybersec-news
+systemctl --user stop cybersec-news
+systemctl --user restart cybersec-news
+
+# View status
+systemctl --user status cybersec-news
+
+# View logs (live)
+journalctl --user -u cybersec-news -f
+
+# View recent logs
+journalctl --user -u cybersec-news -n 100
+
+# Disable service
+systemctl --user disable cybersec-news
+```
+
+**System Service:**
+```bash
+# Start/Stop/Restart
+sudo systemctl start cybersec-news
+sudo systemctl stop cybersec-news
+sudo systemctl restart cybersec-news
+
+# View status
+sudo systemctl status cybersec-news
+
+# View logs (live)
+sudo journalctl -u cybersec-news -f
+
+# View recent logs
+sudo journalctl -u cybersec-news -n 100
+
+# Disable service
+sudo systemctl disable cybersec-news
+```
+
+### Auto-Restart After Updates
+
+When running as a service, you can configure automatic restart after updates:
+
+1. Go to: `http://localhost:5000/updates`
+2. Enable "Restart After Update"
+3. Save settings
+
+The service will automatically restart when updates are installed via the auto-update feature.
 
 ---
 

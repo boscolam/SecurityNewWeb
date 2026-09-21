@@ -82,41 +82,53 @@ SecurityNewWeb/
 
 ## Installation
 
-### Quick Start
+### Quick Start (Recommended - Run as Service)
 
 ```bash
 # Clone the repository
 git clone https://github.com/boscolam/SecurityNewWeb.git
 cd SecurityNewWeb
 
-# Run setup script
-chmod +x setup.sh
-./setup.sh
+# Install as systemd service (runs automatically on boot)
+./setup.sh --service
 
-# Activate virtual environment
-source venv/bin/activate
-
-# Run the application
-python app.py
+# Access dashboard
+# http://localhost:5000
 ```
 
-The dashboard will be available at `http://localhost:5000`
+**Service management:**
+```bash
+./service.sh status    # Check status
+./service.sh restart   # Restart service
+./service.sh logs      # View logs
+```
 
-### Manual Installation
+### Alternative: Manual Run
 
 ```bash
-# Create virtual environment
-python3 -m venv venv
+# Clone and setup
+git clone https://github.com/boscolam/SecurityNewWeb.git
+cd SecurityNewWeb
+./setup.sh
+
+# Run manually
 source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Initialize database and start app
 python app.py
+
+# Access at http://localhost:5000
 ```
 
-### Production Deployment
+### Production Deployment (System Service)
+
+```bash
+# Full production setup with Apache
+sudo ./setup.sh --production
+
+# OR system service only
+sudo ./setup.sh --system-service
+```
+
+### Production Deployment (Apache)
 
 For Apache with mod_wsgi deployment, see [INSTALL.md](INSTALL.md) for detailed instructions.
 

@@ -2,6 +2,88 @@
 
 All notable changes to the Cybersecurity News Dashboard will be documented in this file.
 
+## [2.2.0] - 2026-09-22
+
+### Added - Systemd Service Support
+
+Implemented comprehensive systemd service support for running the application as a background service.
+
+#### New Features
+- **Systemd Service Files**: 
+  - System-wide service (`cybersec-news.service`) for production
+  - User service (`cybersec-news-user.service`) for home directory installations
+  - Automatic startup on boot
+  - Process management and monitoring
+  
+- **Enhanced Setup Script**:
+  - `setup.sh` now supports `--service` and `--system-service` flags
+  - Interactive installation with colored output
+  - Automatic service installation and configuration
+  - Production mode with Apache setup (`--production`)
+  - Comprehensive error checking and validation
+
+- **Service Management Script**:
+  - New `service.sh` helper script for easy service management
+  - Commands: status, start, stop, restart, logs, install, uninstall
+  - Auto-detects service mode (user vs system)
+  - Colored output for better readability
+
+#### Service Features
+- ✅ Automatic restart on failure (RestartSec=10)
+- ✅ Runs on boot (system service)
+- ✅ Runs on login (user service with linger)
+- ✅ Proper logging via journald
+- ✅ Security hardening (NoNewPrivileges, PrivateTmp, ProtectSystem)
+- ✅ Resource limits (MemoryLimit=512M, LimitNOFILE=65535)
+- ✅ Graceful shutdown handling
+
+#### Installation Methods
+
+**Quick Service Installation:**
+```bash
+# User service (home directory)
+./setup.sh --service
+
+# System service (production)
+sudo ./setup.sh --system-service
+
+# Full production setup (Apache)
+sudo ./setup.sh --production
+```
+
+**Service Management:**
+```bash
+./service.sh status    # Check status
+./service.sh restart   # Restart service
+./service.sh logs      # View live logs
+```
+
+#### Components Added
+- `cybersec-news.service`: System-wide service file
+- `cybersec-news-user.service`: User service file
+- `service.sh`: Service management helper script
+
+#### Documentation Updates
+- Enhanced `setup.sh` with service installation
+- Updated `UBUNTU_INSTALL.md` with service instructions
+- Added service management commands
+- Updated quick start guide
+
+#### Benefits
+1. **Production Ready**: Run as proper daemon service
+2. **Auto-Start**: Starts automatically on boot
+3. **Reliability**: Automatic restart on crashes
+4. **Management**: Easy control via systemctl
+5. **Monitoring**: Integrated logging with journald
+6. **Security**: Runs with proper permissions and isolation
+
+### Modified
+- `setup.sh`: Complete rewrite with service support
+- `UBUNTU_INSTALL.md`: Added comprehensive service section
+- `README.md`: Updated installation instructions
+
+---
+
 ## [2.1.0] - 2026-09-21
 
 ### Added - Auto-Update Feature
