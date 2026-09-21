@@ -1,0 +1,258 @@
+# Cybersecurity News Dashboard
+
+A comprehensive Flask-based web application that aggregates cybersecurity news from multiple sources including RSS feeds, vendor security blogs, dark web intelligence, CVE databases, and social media platforms.
+
+![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
+![Flask](https://img.shields.io/badge/Flask-3.0.0-green.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+
+## Features
+
+### Core Functionality
+- **Multi-Source Aggregation**: Fetches news from 90+ predefined sources across:
+  - Major cybersecurity news sites (The Hacker News, BleepingComputer, SecurityWeek)
+  - Vendor research teams (Palo Alto Unit42, Cisco Talos, Microsoft Security, Google Project Zero)
+  - Dark web threat intelligence (DarkOwl, Flashpoint, Recorded Future)
+  - CVE databases (NVD, CISA, US-CERT, Exploit-DB)
+  - Government CERTs and security advisories
+  - Chinese cybersecurity vendors (Qihoo 360, NSFOCUS, Antiy Labs)
+  - Social media platforms (Reddit r/netsec, Medium cybersecurity)
+
+- **Priority-Based Scoring**: Intelligent prioritization system with:
+  - Configurable priority rules based on keywords, categories, and sources
+  - Automatic scoring (0-100) with labels: critical, high, medium, low
+  - Hacking incident detection
+  - CVE identification and vendor tracking
+  - Daily priority rule analysis for effectiveness
+
+- **Smart Filtering**:
+  - Region-based filtering (Global, North America, Europe, Asia Pacific, China, Middle East, Latin America)
+  - Category filtering (Web News, Blog, Vendor Research, Dark Web, CVE, Government)
+  - Feed type classification (RSS, Web Scrape, API, Social Media)
+
+- **Automatic Feed Discovery**: 
+  - Daily automatic discovery of new RSS feeds from existing sources
+  - Manual approval workflow for discovered feeds
+  - Prevents duplicate feeds
+
+### Technical Features
+- **Background Task Scheduling**: APScheduler for automated operations:
+  - Configurable feed refresh intervals (default: 30 minutes)
+  - Daily priority analysis at midnight
+  - Daily feed auto-discovery at 2 AM
+  - Weekly cleanup of old news (90-day retention)
+
+- **Database**: SQLite with Write-Ahead Logging (WAL) for concurrent access
+- **Web Interface**: Responsive HTML/CSS/JavaScript dashboard
+- **Production Ready**: Apache mod_wsgi deployment support
+
+## Project Structure
+
+```
+SecurityNewWeb/
+├── app.py                  # Main Flask application with routes
+├── config.py               # Configuration and default feed sources
+├── database.py             # Database operations and schema
+├── feed_manager.py         # RSS/feed fetching and parsing
+├── priority_engine.py      # Priority scoring and analysis
+├── auto_discovery.py       # Automatic feed discovery
+├── requirements.txt        # Python dependencies
+├── setup.sh               # Quick setup script
+├── wsgi.py                # WSGI entry point for Apache
+├── INSTALL.md             # Detailed installation guide
+├── static/
+│   ├── css/style.css      # Dashboard styling
+│   └── js/app.js          # Frontend JavaScript
+└── templates/
+    ├── base.html          # Base template
+    ├── dashboard.html     # Main dashboard
+    ├── news.html          # News listing
+    ├── cve.html           # CVE-specific view
+    ├── sources.html       # Feed source management
+    ├── priorities.html    # Priority rules management
+    └── settings.html      # Application settings
+```
+
+## Installation
+
+### Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/boscolam/SecurityNewWeb.git
+cd SecurityNewWeb
+
+# Run setup script
+chmod +x setup.sh
+./setup.sh
+
+# Activate virtual environment
+source venv/bin/activate
+
+# Run the application
+python app.py
+```
+
+The dashboard will be available at `http://localhost:5000`
+
+### Manual Installation
+
+```bash
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Initialize database and start app
+python app.py
+```
+
+### Production Deployment
+
+For Apache with mod_wsgi deployment, see [INSTALL.md](INSTALL.md) for detailed instructions.
+
+## Configuration
+
+### Application Settings
+Access via web interface at `/settings` or modify directly in the database:
+
+- **Refresh Interval**: How often to fetch feeds (default: 30 minutes)
+- **Max News Items**: Maximum number of articles to store (default: 10,000)
+- **Retention Days**: Days to keep old news (default: 90)
+
+### Priority Rules
+Customize at `/priorities` to define scoring rules based on:
+- Keywords in title/content
+- News category
+- Source name
+- Region
+
+### Feed Sources
+Manage at `/sources`:
+- Add/edit/delete RSS feeds
+- Enable/disable specific sources
+- View fetch status and errors
+- Approve auto-discovered feeds
+
+## API Endpoints
+
+### News
+- `GET /` - Main dashboard
+- `GET /news` - News listing with filters
+- `GET /api/news` - JSON API for news articles
+- `GET /api/top-news` - Top priority news items
+
+### Sources
+- `GET /sources` - Source management page
+- `GET /api/sources` - List all sources
+- `POST /api/sources` - Add new source
+- `PUT /api/sources/<id>` - Update source
+- `DELETE /api/sources/<id>` - Delete source
+
+### Priority Rules
+- `GET /priorities` - Priority rules management
+- `GET /api/priority-rules` - List all rules
+- `POST /api/priority-rules` - Add new rule
+- `PUT /api/priority-rules/<id>` - Update rule
+- `DELETE /api/priority-rules/<id>` - Delete rule
+
+### CVE Tracking
+- `GET /cve` - CVE-specific dashboard
+- `GET /api/cve-news` - CVE news with vendor filtering
+
+### Feed Discovery
+- `GET /api/discovered-feeds` - View discovered feeds
+- `POST /api/discovered-feeds/<id>/approve` - Approve feed
+- `POST /api/discovered-feeds/<id>/reject` - Reject feed
+
+### Analytics
+- `GET /api/stats` - News statistics
+- `GET /api/analysis-logs` - Priority analysis logs
+
+## Database Schema
+
+### Tables
+- **news**: News articles with priority scores, CVE info, and metadata
+- **sources**: Feed sources with configuration and status
+- **settings**: Application settings (key-value pairs)
+- **priority_rules**: Priority scoring rules with hit counters
+- **discovered_feeds**: Auto-discovered feeds pending approval
+- **priority_analysis_log**: Daily analysis results
+
+## Security Considerations
+
+### Default Secret Key
+⚠️ **Important**: Change the default Flask secret key in production:
+
+```python
+# In app.py
+app.config['SECRET_KEY'] = 'your-secure-random-key-here'
+```
+
+### Input Validation
+- All user inputs are validated and sanitized
+- HTML content is cleaned with bleach library
+- SQL injection protection via parameterized queries
+- XSS prevention with proper escaping
+
+### Network Security
+- Request timeouts prevent hanging connections
+- User-Agent headers for respectful crawling
+- Error handling for malformed feeds
+
+## Dependencies
+
+Core Python packages:
+- **Flask 3.0.0**: Web framework
+- **feedparser 6.0.11**: RSS/Atom feed parsing
+- **beautifulsoup4 4.12.2**: HTML parsing
+- **requests 2.31.0**: HTTP library
+- **APScheduler 3.10.4**: Background task scheduling
+- **lxml 4.9.3**: XML/HTML processing
+- **python-dateutil 2.8.2**: Date parsing
+- **bleach 6.1.0**: HTML sanitization
+
+## Contributing
+
+Contributions are welcome! Please:
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- Thanks to all the cybersecurity news sources and vendors providing RSS feeds
+- Inspired by the need for centralized threat intelligence aggregation
+- Built for security professionals, researchers, and enthusiasts
+
+## Support
+
+For issues, questions, or contributions:
+- Open an issue on [GitHub](https://github.com/boscolam/SecurityNewWeb/issues)
+- Check [INSTALL.md](INSTALL.md) for detailed setup instructions
+
+## Roadmap
+
+Future enhancements:
+- [ ] Email/Slack notifications for high-priority news
+- [ ] Advanced NLP for better article classification
+- [ ] Machine learning for priority prediction
+- [ ] REST API with authentication
+- [ ] Docker containerization
+- [ ] Integration with SIEM platforms
+- [ ] Mobile app
+- [ ] Multi-language support
+- [ ] Advanced analytics dashboard
+- [ ] Threat actor tracking
+
+---
+
+**Made with ❤️ for the cybersecurity community**
