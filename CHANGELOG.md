@@ -2,6 +2,79 @@
 
 All notable changes to the Cybersecurity News Dashboard will be documented in this file.
 
+## [2.3.1] - 2026-09-22
+
+### Fixed - Service Health Check & Verification
+
+Fixed critical issues with service health checking and added service file verification.
+
+#### Bug Fixes
+- **Health Check Logic**: Fixed false negatives in service status detection
+  - Previously reported "Service is not running" even when service was active
+  - Now properly detects all service states: active, inactive, failed, activating
+  - Shows detailed state information instead of just pass/fail
+  - Better handling of edge cases and error states
+
+#### New Features
+- **Service File Verification**: New `verify` command to check service file integrity
+  - Detects unreplaced placeholders (__INSTALL_USER__, __INSTALL_GROUP__, __INSTALL_PATH__)
+  - Validates Description field
+  - Checks if Python executable exists
+  - Verifies working directory exists
+  - Provides step-by-step fix instructions for corrupted service files
+
+#### Enhanced Analysis
+- **Better Error Detection**: Analyze command now:
+  - Shows detailed service state information
+  - Detects corrupted service files automatically
+  - Displays more recent error logs (20 lines instead of 10)
+  - Provides specific fix recommendations based on detected issues
+  - Checks service file for unreplaced placeholders
+
+#### Commands Updated
+- `./service.sh health` - Improved service state detection
+- `./service.sh analyze` - Enhanced error diagnostics
+- `./service.sh verify` - NEW: Verify service file integrity
+
+#### Usage Examples
+
+**Check Service Status:**
+```bash
+./service.sh health
+```
+
+**Verify Service File:**
+```bash
+./service.sh verify
+```
+
+**If Service File is Corrupted:**
+```bash
+./service.sh uninstall
+./setup.sh --service
+```
+
+#### Technical Changes
+- service.sh: Enhanced cmd_health() with proper state detection
+- service.sh: Enhanced cmd_analyze() with service file validation
+- service.sh: Added cmd_verify() for service file integrity checking
+- Removed use of `is-active --quiet` which caused false negatives
+- Added explicit state checking with detailed output
+
+#### Benefits
+✅ **Accurate Health Checks**: No more false "service not running" errors  
+✅ **Detect Corrupted Files**: Automatically find service file issues  
+✅ **Easy Fixes**: Step-by-step instructions to repair problems  
+✅ **Better Diagnostics**: Detailed state information for troubleshooting  
+✅ **Proactive Checks**: Verify command prevents issues before they happen  
+
+### Modified
+- service.sh: Fixed health check logic and added verify command
+- VERSION: Updated to 2.3.1
+- CHANGELOG.md: Documented v2.3.1 fixes
+
+---
+
 ## [2.3.0] - 2026-09-22
 
 ### Added - Comprehensive Logging Architecture

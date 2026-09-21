@@ -77,6 +77,7 @@ COMMANDS:
     logs-tail   View last 100 log lines
     health      Comprehensive system health check (NEW!)
     analyze     Detailed analysis with recommendations (NEW!)
+    verify      Verify service file integrity (NEW!)
     install     Install systemd service
     uninstall   Remove systemd service
 
@@ -84,6 +85,7 @@ EXAMPLES:
     ./service.sh status          # Quick status check
     ./service.sh health          # Full health check (recommended!)
     ./service.sh analyze         # Detailed analysis
+    ./service.sh verify          # Verify service file integrity
     ./service.sh restart         # Restart service
     ./service.sh logs            # View live logs
 
@@ -316,15 +318,29 @@ cmd_health() {
     # 2. Check service status
     echo "[2/10] Service Status"
     if [ "$SERVICE_MODE" != "none" ]; then
-        if $SYSTEMCTL is-active --quiet $SERVICE_NAME; then
+        # Get the actual service state
+        SERVICE_STATE=$($SYSTEMCTL is-active $SERVICE_NAME 2>/dev/null || echo "unknown")
+
+        if [ "$SERVICE_STATE" = "active" ]; then
             print_success "Service is running"
-        else
-            print_error "Service is not running"
+        elif [ "$SERVICE_STATE" = "activating" ]; then
+            print_info "Service is starting..."
+        elif [ "$SERVICE_STATE" = "inactive" ]; then
+            print_error "Service is stopped"
             ISSUES=$((ISSUES + 1))
             echo "       Run: ./service.sh start"
+        elif [ "$SERVICE_STATE" = "failed" ]; then
+            print_error "Service failed to start"
+            ISSUES=$((ISSUES + 1))
+            echo "       Run: ./service.sh logs-tail to see errors"
+            echo "       Run: ./service.sh restart to try again"
+        else
+            print_error "Service state: $SERVICE_STATE"
+            ISSUES=$((ISSUES + 1))
+            echo "       Run: ./service.sh status for details"
         fi
     else
-        print_info "No service to check"
+        print_info "No service installed"
     fi
     echo ""
 
@@ -497,26 +513,46 @@ cmd_analyze() {
 
     # Check service status and analyze
     if [ "$SERVICE_MODE" != "none" ]; then
-        if ! $SYSTEMCTL is-active --quiet $SERVICE_NAME; then
+        SERVICE_STATE=$($SYSTEMCTL is-active $SERVICE_NAME 2>/dev/null || echo "unknown")
+
+        if [ "$SERVICE_STATE" != "active" ]; then
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo "Issue: Service Not Running"
+            echo "Issue: Service Not Running Properly"
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-            # Get failure reason
+            # Get detailed status
             FAILED_REASON=$($SYSTEMCTL status $SERVICE_NAME 2>&1 | grep "Active:" || echo "Unknown")
             echo "Status: $FAILED_REASON"
+            echo "State: $SERVICE_STATE"
             echo ""
 
             # Check recent logs for errors
             echo "Recent Errors:"
-            $JOURNALCTL -u $SERVICE_NAME -n 10 -p err --no-pager 2>/dev/null || echo "No error logs available"
+            $JOURNALCTL -u $SERVICE_NAME -n 20 -p err --no-pager 2>/dev/null || echo "No error logs available"
             echo ""
+
+            # Check if it's a service file issue
+            if [ "$SERVICE_MODE" = "system" ]; then
+                SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
+            else
+                SERVICE_FILE="$HOME/.config/systemd/user/${SERVICE_NAME}.service"
+            fi
+
+            # Check for corrupted service file
+            if [ -f "$SERVICE_FILE" ]; then
+                if grep -q "__INSTALL_" "$SERVICE_FILE"; then
+                    echo "⚠ CORRUPTED SERVICE FILE DETECTED!"
+                    echo "   Service file contains unreplaced placeholders"
+                    echo ""
+                fi
+            fi
 
             echo "Recommendation:"
             echo "  1. Check logs: ./service.sh logs-tail"
-            echo "  2. Check permissions: ls -la venv/bin/python3"
-            echo "  3. Restart service: ./service.sh restart"
-            echo "  4. If failed: ./service.sh uninstall && ./setup.sh --service"
+            echo "  2. Check service file: $SERVICE_FILE"
+            echo "  3. Reinstall service: ./service.sh uninstall && ./setup.sh --service"
+            echo "  4. Check permissions: ls -la venv/bin/python3"
+            echo "  5. Manual test: source venv/bin/activate && python3 app.py"
             echo ""
         else
             print_success "Service is running normally"
@@ -659,6 +695,129 @@ cmd_analyze() {
     echo ""
 }
 
+# Verify service file integrity
+cmd_verify() {
+    echo "============================================"
+    echo "  Service File Verification"
+    echo "============================================"
+    echo ""
+
+    if [ "$SERVICE_MODE" = "none" ]; then
+        print_error "No service installed"
+        echo ""
+        echo "Install service with:"
+        echo "  ./setup.sh --service           # User service"
+        echo "  sudo ./setup.sh --system-service  # System service"
+        exit 1
+    fi
+
+    # Get service file path
+    if [ "$SERVICE_MODE" = "system" ]; then
+        SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
+    else
+        SERVICE_FILE="$HOME/.config/systemd/user/${SERVICE_NAME}.service"
+    fi
+
+    echo "Service Mode: $SERVICE_MODE"
+    echo "Service File: $SERVICE_FILE"
+    echo ""
+
+    if [ ! -f "$SERVICE_FILE" ]; then
+        print_error "Service file not found!"
+        echo ""
+        echo "Fix: Reinstall service with ./setup.sh --service"
+        exit 1
+    fi
+
+    # Check for unreplaced placeholders
+    ISSUES_FOUND=0
+
+    echo "Checking for configuration issues..."
+    echo ""
+
+    if grep -q "__INSTALL_USER__" "$SERVICE_FILE"; then
+        print_error "Found unreplaced __INSTALL_USER__ placeholder"
+        ISSUES_FOUND=$((ISSUES_FOUND + 1))
+    fi
+
+    if grep -q "__INSTALL_GROUP__" "$SERVICE_FILE"; then
+        print_error "Found unreplaced __INSTALL_GROUP__ placeholder"
+        ISSUES_FOUND=$((ISSUES_FOUND + 1))
+    fi
+
+    if grep -q "__INSTALL_PATH__" "$SERVICE_FILE"; then
+        print_error "Found unreplaced __INSTALL_PATH__ placeholder"
+        ISSUES_FOUND=$((ISSUES_FOUND + 1))
+    fi
+
+    # Check for proper Description field
+    DESCRIPTION=$(grep "^Description=" "$SERVICE_FILE" | cut -d'=' -f2-)
+    if [ -z "$DESCRIPTION" ]; then
+        print_error "Missing Description field"
+        ISSUES_FOUND=$((ISSUES_FOUND + 1))
+    elif [ "$DESCRIPTION" != "Cybersecurity News Dashboard" ] && [ "$DESCRIPTION" != "Cybersecurity News Dashboard (User Service)" ]; then
+        print_error "Incorrect Description: $DESCRIPTION"
+        ISSUES_FOUND=$((ISSUES_FOUND + 1))
+    else
+        print_success "Description field OK"
+    fi
+
+    # Check ExecStart path
+    EXEC_START=$(grep "^ExecStart=" "$SERVICE_FILE" | cut -d'=' -f2-)
+    if [ -n "$EXEC_START" ]; then
+        PYTHON_PATH=$(echo "$EXEC_START" | awk '{print $1}')
+        if [ -f "$PYTHON_PATH" ]; then
+            print_success "Python executable exists: $PYTHON_PATH"
+        else
+            print_error "Python executable not found: $PYTHON_PATH"
+            ISSUES_FOUND=$((ISSUES_FOUND + 1))
+        fi
+    fi
+
+    # Check WorkingDirectory
+    WORK_DIR=$(grep "^WorkingDirectory=" "$SERVICE_FILE" | cut -d'=' -f2-)
+    if [ -n "$WORK_DIR" ]; then
+        if [ -d "$WORK_DIR" ]; then
+            print_success "Working directory exists: $WORK_DIR"
+        else
+            print_error "Working directory not found: $WORK_DIR"
+            ISSUES_FOUND=$((ISSUES_FOUND + 1))
+        fi
+    fi
+
+    echo ""
+    echo "============================================"
+    echo "  Verification Summary"
+    echo "============================================"
+
+    if [ "$ISSUES_FOUND" -eq 0 ]; then
+        print_success "Service file is valid"
+        echo ""
+        echo "Your service file is correctly configured."
+    else
+        print_error "Found $ISSUES_FOUND issue(s) in service file"
+        echo ""
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "FIX INSTRUCTIONS"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+        echo "The service file has configuration issues."
+        echo "Reinstall the service to fix:"
+        echo ""
+        echo "  1. Uninstall: ./service.sh uninstall"
+        echo "  2. Reinstall: ./setup.sh --service"
+        echo ""
+        echo "Or manually reinstall:"
+        if [ "$SERVICE_MODE" = "system" ]; then
+            echo "  sudo ./setup.sh --system-service"
+        else
+            echo "  ./setup.sh --service"
+        fi
+        echo ""
+        exit 1
+    fi
+}
+
 # Main command handler
 COMMAND=${1:-help}
 
@@ -695,6 +854,9 @@ case $COMMAND in
         ;;
     analyze|diag|diagnose)
         cmd_analyze
+        ;;
+    verify|check-service)
+        cmd_verify
         ;;
     install)
         cmd_install
