@@ -1,11 +1,20 @@
 # Systemd service file for Cybersecurity News Dashboard
-# Copy this file to /etc/systemd/system/cybersec-news.service
+# This is a TEMPLATE file - the setup script will replace placeholders with actual values
 #
-# Installation:
-#   sudo cp cybersec-news.service /etc/systemd/system/
-#   sudo systemctl daemon-reload
-#   sudo systemctl enable cybersec-news
-#   sudo systemctl start cybersec-news
+# Placeholders that will be replaced during installation:
+#   __INSTALL_USER__    - User to run the service as
+#   __INSTALL_GROUP__   - Group to run the service as
+#   __INSTALL_PATH__    - Installation directory path
+#
+# Manual Installation (if not using setup.sh):
+#   1. Edit this file and replace __INSTALL_USER__, __INSTALL_GROUP__, __INSTALL_PATH__
+#   2. sudo cp cybersec-news.service /etc/systemd/system/
+#   3. sudo systemctl daemon-reload
+#   4. sudo systemctl enable cybersec-news
+#   5. sudo systemctl start cybersec-news
+#
+# Automated Installation:
+#   sudo ./setup.sh --system-service
 #
 # Management:
 #   sudo systemctl status cybersec-news
@@ -21,12 +30,12 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=www-data
-Group=www-data
-WorkingDirectory=/var/www/cybersec-news
-Environment="PATH=/var/www/cybersec-news/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+User=__INSTALL_USER__
+Group=__INSTALL_GROUP__
+WorkingDirectory=__INSTALL_PATH__
+Environment="PATH=__INSTALL_PATH__/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 Environment="PYTHONUNBUFFERED=1"
-ExecStart=/var/www/cybersec-news/venv/bin/python3 app.py
+ExecStart=__INSTALL_PATH__/venv/bin/python3 app.py
 
 # Restart behavior
 Restart=always
@@ -37,7 +46,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/var/www/cybersec-news
+ReadWritePaths=__INSTALL_PATH__
 
 # Resource limits
 LimitNOFILE=65535

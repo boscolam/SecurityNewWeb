@@ -1,19 +1,22 @@
 # Systemd USER service file for Cybersecurity News Dashboard
-# Use this for home directory installations (non-root)
+# This is a TEMPLATE file - the setup script will replace placeholders with actual values
 #
-# Installation:
-#   mkdir -p ~/.config/systemd/user/
-#   cp cybersec-news-user.service ~/.config/systemd/user/cybersec-news.service
+# Placeholders that will be replaced during installation:
+#   __INSTALL_PATH__    - Installation directory path
 #
-#   # Edit the file to update paths (replace YOUR_USERNAME)
-#   nano ~/.config/systemd/user/cybersec-news.service
+# Note: User services automatically run as the user who owns the service file
 #
-#   systemctl --user daemon-reload
-#   systemctl --user enable cybersec-news
-#   systemctl --user start cybersec-news
+# Manual Installation (if not using setup.sh):
+#   1. Edit this file and replace __INSTALL_PATH__ with your actual path
+#   2. mkdir -p ~/.config/systemd/user/
+#   3. cp cybersec-news-user.service ~/.config/systemd/user/cybersec-news.service
+#   4. systemctl --user daemon-reload
+#   5. systemctl --user enable cybersec-news
+#   6. systemctl --user start cybersec-news
+#   7. sudo loginctl enable-linger $USER  (optional - start on boot)
 #
-#   # Enable linger (service starts on boot without login)
-#   sudo loginctl enable-linger $USER
+# Automated Installation:
+#   ./setup.sh --service
 #
 # Management:
 #   systemctl --user status cybersec-news
@@ -28,10 +31,10 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=%h/SecurityNewWeb
-Environment="PATH=%h/SecurityNewWeb/venv/bin:/usr/local/bin:/usr/bin:/bin"
+WorkingDirectory=__INSTALL_PATH__
+Environment="PATH=__INSTALL_PATH__/venv/bin:/usr/local/bin:/usr/bin:/bin"
 Environment="PYTHONUNBUFFERED=1"
-ExecStart=%h/SecurityNewWeb/venv/bin/python3 app.py
+ExecStart=__INSTALL_PATH__/venv/bin/python3 app.py
 
 # Restart behavior
 Restart=always

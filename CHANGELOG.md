@@ -2,6 +2,74 @@
 
 All notable changes to the Cybersecurity News Dashboard will be documented in this file.
 
+## [2.2.2] - 2026-09-22
+
+### Fixed - Automatic User/Group/Path Detection
+
+Removed all hardcoded usernames, groups, and paths from service files and installation scripts.
+
+#### Service Files Enhanced
+- **cybersec-news.service**: Now uses placeholders instead of hardcoded values
+  - `__INSTALL_USER__` replaced with detected user
+  - `__INSTALL_GROUP__` replaced with detected group  
+  - `__INSTALL_PATH__` replaced with actual installation path
+  
+- **cybersec-news-user.service**: Now uses placeholders
+  - `__INSTALL_PATH__` replaced with actual path
+  - No more `%h/SecurityNewWeb` assumption
+
+#### Setup Script Improved
+- Automatically detects current user with `$USER` or `$(whoami)`
+- Automatically detects current group with `$(id -gn)`
+- Automatically detects installation path with `$(pwd)`
+- Replaces all placeholders during service installation
+- Shows detected configuration before installing
+- Works with any username, group, or installation path
+
+#### Benefits
+✅ **No Manual Editing**: Service files auto-configured  
+✅ **Any User**: Works with any username (bosco, ubuntu, www-data, etc.)  
+✅ **Any Path**: Works with any installation directory  
+✅ **No Hardcoding**: All values dynamically detected  
+✅ **Error Prevention**: Eliminates permission issues from wrong usernames  
+
+#### New Documentation
+- **PERMISSIONS_FIX.md**: Complete guide for permission issues
+  - Automatic detection examples
+  - Fix scripts for common problems
+  - Troubleshooting permission errors
+  - Complete fix script included
+
+#### Installation Examples
+
+**Before (v2.2.1):**
+```bash
+# Had to manually edit service files for custom paths
+# Hardcoded www-data user caused permission issues
+```
+
+**After (v2.2.2):**
+```bash
+cd /any/path/SecurityNewWeb
+./setup.sh --service
+# Automatically detects and configures everything!
+```
+
+#### Technical Changes
+- Service template files use placeholder variables
+- setup.sh performs sed substitution during install
+- Detects user: `${USER:-$(whoami)}`
+- Detects group: `$(id -gn)`
+- Detects path: absolute path of current directory
+
+### Modified
+- cybersec-news.service: Template with placeholders
+- cybersec-news-user.service: Template with placeholders
+- setup.sh: Auto-detection and substitution logic
+- PERMISSIONS_FIX.md: New troubleshooting guide
+
+---
+
 ## [2.2.1] - 2026-09-22
 
 ### Added - Quick Fix Documentation

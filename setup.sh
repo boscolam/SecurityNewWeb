@@ -218,15 +218,28 @@ echo ""
 echo "[7/7] Service configuration..."
 
 if [ "$INSTALL_SERVICE" = true ]; then
+    # Detect current user and group
+    CURRENT_USER="${USER:-$(whoami)}"
+    CURRENT_GROUP=$(id -gn)
+
+    print_info "Detected user: $CURRENT_USER, group: $CURRENT_GROUP"
+    print_info "Installation path: $INSTALL_PATH"
+
     if [ "$SERVICE_MODE" = "system" ]; then
         # System-wide service
         print_info "Installing system-wide service..."
 
-        # Update service file with correct path
-        sed "s|/var/www/cybersec-news|$INSTALL_PATH|g" cybersec-news.service > /tmp/cybersec-news.service
+        # Create service file from template with proper substitutions
+        sed -e "s|__INSTALL_USER__|$CURRENT_USER|g" \
+            -e "s|__INSTALL_GROUP__|$CURRENT_GROUP|g" \
+            -e "s|__INSTALL_PATH__|$INSTALL_PATH|g" \
+            cybersec-news.service > /tmp/cybersec-news.service
 
         # Copy service file
         cp /tmp/cybersec-news.service /etc/systemd/system/cybersec-news.service
+
+        # Clean up temp file
+        rm -f /tmp/cybersec-news.service
 
         # Reload systemd
         systemctl daemon-reload
@@ -238,6 +251,11 @@ if [ "$INSTALL_SERVICE" = true ]; then
         systemctl start cybersec-news
 
         print_msg "System service installed and started"
+        echo ""
+        echo "Configuration:"
+        echo "  User: $CURRENT_USER"
+        echo "  Group: $CURRENT_GROUP"
+        echo "  Path: $INSTALL_PATH"
         echo ""
         echo "Service management commands:"
         echo "  sudo systemctl status cybersec-news"
@@ -252,11 +270,9 @@ if [ "$INSTALL_SERVICE" = true ]; then
         # Create user systemd directory
         mkdir -p ~/.config/systemd/user/
 
-        # Copy and update service file
-        cp cybersec-news-user.service ~/.config/systemd/user/cybersec-news.service
-
-        # Update paths in service file
-        sed -i "s|%h/SecurityNewWeb|$INSTALL_PATH|g" ~/.config/systemd/user/cybersec-news.service
+        # Create service file from template with proper substitutions
+        sed -e "s|__INSTALL_PATH__|$INSTALL_PATH|g" \
+            cybersec-news-user.service > ~/.config/systemd/user/cybersec-news.service
 
         # Reload systemd
         systemctl --user daemon-reload
@@ -271,6 +287,10 @@ if [ "$INSTALL_SERVICE" = true ]; then
         sudo loginctl enable-linger $USER 2>/dev/null || print_warning "Could not enable linger (service won't start on boot)"
 
         print_msg "User service installed and started"
+        echo ""
+        echo "Configuration:"
+        echo "  User: $CURRENT_USER"
+        echo "  Path: $INSTALL_PATH"
         echo ""
         echo "Service management commands:"
         echo "  systemctl --user status cybersec-news"
