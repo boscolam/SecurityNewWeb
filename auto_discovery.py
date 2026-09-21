@@ -62,7 +62,8 @@ def run_feed_discovery():
         try:
             feeds = _discover_from_page(source['url'], existing_urls)
             for feed in feeds:
-                feed['discovered_from'] = source['name']
+                # Truncate discovered_from to prevent URL length issues
+                feed['discovered_from'] = source['name'][:200]
                 if add_discovered_feed(feed):
                     discovered_count += 1
         except Exception as e:
@@ -73,7 +74,9 @@ def run_feed_discovery():
         try:
             feeds = _discover_linked_feeds(source['url'], existing_urls)
             for feed in feeds:
-                feed['discovered_from'] = f"Linked from {source['name']}"
+                # Truncate discovered_from to prevent URL length issues
+                source_name = source['name'][:150]  # Limit source name length
+                feed['discovered_from'] = f"Linked from {source_name}"
                 if add_discovered_feed(feed):
                     discovered_count += 1
         except Exception as e:
@@ -98,9 +101,11 @@ def _discover_from_page(url, existing_urls):
             href = link.get('href', '')
             if href and href not in existing_urls:
                 title = link.get('title', urlparse(href).netloc)
+                full_url = urljoin(url, href)
+                # Truncate to prevent URL length issues
                 feeds.append({
-                    'name': title,
-                    'url': urljoin(url, href),
+                    'name': title[:200] if title else urlparse(full_url).netloc[:200],
+                    'url': full_url[:500],  # Limit URL length
                     'category': 'web_news',
                     'region': 'global'
                 })
@@ -112,9 +117,10 @@ def _discover_from_page(url, existing_urls):
             if any(pattern in href.lower() for pattern in ['/rss', '/feed', 'atom.xml', '.rss']):
                 full_url = urljoin(url, href)
                 if full_url not in existing_urls and _is_security_domain(full_url):
+                    # Truncate to prevent URL length issues
                     feeds.append({
-                        'name': text or urlparse(full_url).netloc,
-                        'url': full_url,
+                        'name': (text[:200] if text else urlparse(full_url).netloc[:200]),
+                        'url': full_url[:500],  # Limit URL length
                         'category': _guess_category(text, full_url),
                         'region': 'global'
                     })
@@ -143,9 +149,11 @@ def _discover_linked_feeds(source_url, existing_urls):
             if response.status_code == 200 and any(
                 t in content_type for t in ['xml', 'rss', 'atom', 'text']
             ):
+                # Truncate to prevent URL length issues
+                feed_name = f"{parsed.netloc} - {pattern.strip('/')}"
                 feeds.append({
-                    'name': f"{parsed.netloc} - {pattern.strip('/')}",
-                    'url': test_url,
+                    'name': feed_name[:200],
+                    'url': test_url[:500],  # Limit URL length
                     'category': 'web_news',
                     'region': 'global'
                 })

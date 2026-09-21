@@ -55,21 +55,15 @@
                     <i class="fas fa-bug"></i> CVE Monitor
                 </a></li>
 
-                <!-- Sources: manage feed sources (add/edit/delete/discover) -->
-                <li><a href="{{ url_for('sources_page') }}"
-                       class="{% if request.endpoint == 'sources_page' %}active{% endif %}">
-                    <i class="fas fa-rss"></i> Sources
-                </a></li>
-
                 <!-- Priorities: manage and view priority scoring rules -->
                 <li><a href="{{ url_for('priorities_page') }}"
                        class="{% if request.endpoint == 'priorities_page' %}active{% endif %}">
                     <i class="fas fa-sort-amount-up"></i> Priorities
                 </a></li>
 
-                <!-- Settings: application configuration (refresh interval, etc.) -->
+                <!-- Settings: application configuration & sources management -->
                 <li><a href="{{ url_for('settings_page') }}"
-                       class="{% if request.endpoint == 'settings_page' %}active{% endif %}">
+                       class="{% if request.endpoint in ['settings_page', 'sources_page'] %}active{% endif %}">
                     <i class="fas fa-cog"></i> Settings
                 </a></li>
 

@@ -19,10 +19,20 @@
 <div class="container">
 
     <!-- ============================================================
-         PAGE HEADER
+         PAGE HEADER with TABS
          ============================================================ -->
     <div class="page-header">
-        <h1><i class="fas fa-cog"></i> Application Settings</h1>
+        <h1><i class="fas fa-cog"></i> Settings & Configuration</h1>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs">
+        <a href="{{ url_for('settings_page') }}" class="tab-link active">
+            <i class="fas fa-sliders-h"></i> Application Settings
+        </a>
+        <a href="{{ url_for('sources_page') }}" class="tab-link">
+            <i class="fas fa-rss"></i> Feed Sources
+        </a>
     </div>
 
     <!-- ============================================================

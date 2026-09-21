@@ -18,16 +18,26 @@
 <div class="container">
 
     <!-- ============================================================
-         PAGE HEADER with discovery trigger button
+         PAGE HEADER with TABS and discovery trigger button
          ============================================================ -->
     <div class="page-header">
-        <h1><i class="fas fa-rss"></i> Feed Sources</h1>
+        <h1><i class="fas fa-cog"></i> Settings & Configuration</h1>
         <div class="header-actions">
             <!-- Button to manually trigger auto-discovery of new feeds -->
             <button class="btn btn-secondary" onclick="discoverFeeds()" id="discoverBtn">
                 <i class="fas fa-search-plus"></i> Discover New Feeds
             </button>
         </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs">
+        <a href="{{ url_for('settings_page') }}" class="tab-link">
+            <i class="fas fa-sliders-h"></i> Application Settings
+        </a>
+        <a href="{{ url_for('sources_page') }}" class="tab-link active">
+            <i class="fas fa-rss"></i> Feed Sources
+        </a>
     </div>
 
     <!-- ============================================================
@@ -254,12 +264,18 @@
         <div class="discovered-grid">
             {% for feed in discovered %}
             <div class="discovered-card {% if feed.approved %}approved{% endif %}">
-                <h4>{{ feed.name }}</h4>
-                <p class="text-muted">{{ feed.url[:80] }}{% if feed.url|length > 80 %}...{% endif %}</p>
+                <h4 title="{{ feed.name }}">
+                    {{ feed.name[:60] }}{% if feed.name|length > 60 %}...{% endif %}
+                </h4>
+                <p class="text-muted" title="{{ feed.url }}">
+                    <small>{{ feed.url[:70] }}{% if feed.url|length > 70 %}...{% endif %}</small>
+                </p>
                 <div class="discovered-meta">
                     <span class="badge badge-info">{{ feed.category }}</span>
                     <span class="badge badge-secondary">{{ feed.region|region_label }}</span>
-                    <span class="text-muted">Found via: {{ feed.discovered_from }}</span>
+                    <span class="text-muted" title="{{ feed.discovered_from }}">
+                        <small>Found via: {{ feed.discovered_from[:40] }}{% if feed.discovered_from|length > 40 %}...{% endif %}</small>
+                    </span>
                 </div>
                 {% if not feed.approved %}
                 <div class="discovered-actions">

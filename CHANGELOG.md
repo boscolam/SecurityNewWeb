@@ -2,6 +2,102 @@
 
 All notable changes to the Cybersecurity News Dashboard will be documented in this file.
 
+## [2.3.2] - 2026-09-22
+
+### Fixed - URL Length Issues & Navigation Reorganization
+
+Fixed URL length issues in auto-discovered feeds and reorganized navigation for better usability.
+
+#### Bug Fixes
+- **URL Length Issues**: Fixed "URL too long" errors in Auto-Discovered Feeds section
+  - Truncated `discovered_from` field to 200 characters maximum
+  - Limited source names to 150 characters in linked feeds
+  - Truncated feed names to 200 characters
+  - Limited URL length to 500 characters in discovery
+  - Added title attributes to show full text on hover
+  - Improved display truncation in templates (name: 60 chars, URL: 70 chars, discovered_from: 40 chars)
+
+#### Navigation Improvements
+- **Reorganized Settings**: Moved Sources under Settings page
+  - Sources is now a tab within Settings (Settings & Configuration)
+  - Cleaner navigation with fewer top-level menu items
+  - Tabbed interface: "Application Settings" and "Feed Sources"
+  - Consistent navigation across both pages
+  - Better organization of configuration options
+
+#### UI Enhancements
+- **Tabbed Navigation**: New tab system for Settings area
+  - Active tab highlighting
+  - Smooth transitions
+  - Mobile-responsive tabs
+  - Icon-based navigation
+  - Hover effects and visual feedback
+
+#### Technical Changes
+- auto_discovery.py: Added truncation to prevent URL length issues
+  - `_discover_from_page()`: Truncate name (200), URL (500)
+  - `_discover_linked_feeds()`: Truncate name (200), URL (500)
+  - `run_feed_discovery()`: Truncate discovered_from (200)
+- templates/sources.html: Enhanced display with truncation and tooltips
+- templates/settings.html: Added tabbed navigation
+- templates/base.html: Updated navigation to combine Sources into Settings
+- static/css/style.css: Added comprehensive tab styles with mobile support
+
+#### Benefits
+✅ **No More URL Length Errors**: All fields properly truncated  
+✅ **Better Organization**: Settings and Sources logically grouped  
+✅ **Cleaner Navigation**: Fewer menu items, better structure  
+✅ **Full Text on Hover**: Title attributes show complete URLs  
+✅ **Mobile Friendly**: Tabs work on all screen sizes  
+✅ **Professional UI**: Modern tabbed interface  
+
+#### Navigation Change
+**Before:**
+```
+Dashboard | News | CVE Monitor | Sources | Priorities | Settings | Updates | Logs
+```
+
+**After:**
+```
+Dashboard | News | CVE Monitor | Priorities | Settings | Updates | Logs
+                                              ↓
+                                    [Application Settings] [Feed Sources]
+```
+
+#### Usage Examples
+
+**Access Sources:**
+```
+1. Click "Settings" in navigation
+2. Click "Feed Sources" tab
+```
+
+**View Full URLs:**
+```
+Hover over truncated text to see full content in tooltip
+```
+
+#### Files Modified
+- auto_discovery.py: Added field truncation (5 locations)
+- templates/sources.html: Added tabs, improved truncation
+- templates/settings.html: Added tabs
+- templates/base.html: Updated navigation
+- static/css/style.css: Added tab styles (56 lines)
+- VERSION: Updated to 2.3.2
+- CHANGELOG.md: Documented v2.3.2
+- README.md: Updated version badge
+
+### Modified
+- auto_discovery.py: Field truncation for URL length safety
+- templates/sources.html: Tabbed interface and display truncation
+- templates/settings.html: Tabbed interface
+- templates/base.html: Navigation reorganization
+- static/css/style.css: Tab navigation styles
+- VERSION: Updated to 2.3.2
+- README.md: Version badge
+
+---
+
 ## [2.3.1] - 2026-09-22
 
 ### Fixed - Service Health Check & Verification
