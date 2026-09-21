@@ -1,0 +1,579 @@
+{% extends "base.html" %}
+
+{% block title %}System Logs - Cybersecurity News Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>📋 System Logs</h1>
+        <p>Real-time log monitoring and troubleshooting</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="card">
+        <div class="log-controls">
+            <div class="control-group">
+                <label for="log-select">Log File:</label>
+                <select id="log-select" onchange="switchLog()">
+                    <option value="app.log">Application Log</option>
+                    <option value="error.log">Error Log</option>
+                    <option value="access.log">Access Log</option>
+                    <option value="update.log">Update Log</option>
+                    <option value="feed.log">Feed Log</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="line-count">Lines:</label>
+                <select id="line-count" onchange="switchLog()">
+                    <option value="50">50</option>
+                    <option value="100" selected>100</option>
+                    <option value="200">200</option>
+                    <option value="500">500</option>
+                    <option value="1000">1000</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="auto-refresh" checked onchange="toggleAutoRefresh()">
+                    Auto-refresh (5s)
+                </label>
+            </div>
+
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="auto-scroll" checked>
+                    Auto-scroll
+                </label>
+            </div>
+
+            <div class="control-group">
+                <button class="btn btn-sm" onclick="refreshLogs()">
+                    <span id="refresh-icon">🔄</span> Refresh
+                </button>
+                <button class="btn btn-sm" onclick="downloadLog()">
+                    💾 Download
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="clearLog()">
+                    🗑️ Clear
+                </button>
+            </div>
+        </div>
+
+        <!-- Log Info -->
+        <div class="log-info">
+            <span id="log-size">Size: Loading...</span>
+            <span id="log-modified">Modified: Loading...</span>
+            <span id="last-updated">Last updated: Never</span>
+        </div>
+    </div>
+
+    <!-- Log Content -->
+    <div class="card">
+        <h2>
+            <span id="current-log-name">Application Log</span>
+            <span class="badge" id="status-badge">Live</span>
+        </h2>
+
+        <!-- Search -->
+        <div class="search-box">
+            <input type="text" id="log-search" placeholder="🔍 Search logs..." onkeyup="filterLogs()">
+            <button class="btn btn-sm" onclick="clearSearch()">Clear</button>
+        </div>
+
+        <!-- Log viewer -->
+        <div class="log-viewer" id="log-content">
+            <div class="loading">Loading logs...</div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="log-stats" id="log-stats" style="display:none;">
+            <span>Total lines: <strong id="total-lines">0</strong></span>
+            <span>ERROR: <strong id="error-count" class="error">0</strong></span>
+            <span>WARNING: <strong id="warning-count" class="warning">0</strong></span>
+            <span>INFO: <strong id="info-count" class="info">0</strong></span>
+        </div>
+    </div>
+
+    <!-- All Logs Overview -->
+    <div class="card">
+        <h2>📁 All Log Files</h2>
+        <div class="log-files-list" id="log-files-list">
+            Loading...
+        </div>
+    </div>
+
+    <!-- Help -->
+    <div class="card">
+        <h2>💡 Troubleshooting Tips</h2>
+
+        <h3>Error Log (error.log)</h3>
+        <ul>
+            <li>Check for Python tracebacks and exceptions</li>
+            <li>Look for "CRITICAL" or "ERROR" level messages</li>
+            <li>Common issues: Permission denied, Module not found, Database locked</li>
+        </ul>
+
+        <h3>Update Log (update.log)</h3>
+        <ul>
+            <li>Shows git pull operations and results</li>
+            <li>Check for merge conflicts or failed updates</li>
+            <li>Service restart status after updates</li>
+        </ul>
+
+        <h3>Feed Log (feed.log)</h3>
+        <ul>
+            <li>RSS feed fetch successes and failures</li>
+            <li>Check for timeout errors or invalid feeds</li>
+            <li>Look for specific source names if feeds not updating</li>
+        </ul>
+
+        <h3>Access Log (access.log)</h3>
+        <ul>
+            <li>HTTP requests to the dashboard</li>
+            <li>Check for unusual activity or errors</li>
+            <li>Monitor API endpoint usage</li>
+        </ul>
+
+        <h3>Log Levels</h3>
+        <ul>
+            <li><span class="badge badge-danger">CRITICAL</span> - Serious errors causing failure</li>
+            <li><span class="badge badge-error">ERROR</span> - Errors that need attention</li>
+            <li><span class="badge badge-warning">WARNING</span> - Warnings about potential issues</li>
+            <li><span class="badge badge-info">INFO</span> - Informational messages</li>
+            <li><span class="badge badge-debug">DEBUG</span> - Detailed debugging information</li>
+        </ul>
+    </div>
+</div>
+
+<style>
+.log-controls {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.control-group label {
+    margin: 0;
+    font-weight: 500;
+}
+
+.control-group select {
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+.log-info {
+    display: flex;
+    gap: 20px;
+    padding: 10px 15px;
+    background: #e9ecef;
+    border-radius: 3px;
+    font-size: 13px;
+    color: #666;
+}
+
+.search-box {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.search-box input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+.log-viewer {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    padding: 15px;
+    border-radius: 3px;
+    max-height: 600px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.log-viewer .loading {
+    color: #888;
+    text-align: center;
+    padding: 20px;
+}
+
+.log-line {
+    margin: 2px 0;
+    padding: 2px 0;
+}
+
+.log-line.error {
+    color: #f48771;
+    background: rgba(244, 135, 113, 0.1);
+}
+
+.log-line.warning {
+    color: #dcdcaa;
+    background: rgba(220, 220, 170, 0.1);
+}
+
+.log-line.info {
+    color: #9cdcfe;
+}
+
+.log-line.debug {
+    color: #b5cea8;
+}
+
+.log-line.highlight {
+    background: rgba(255, 255, 0, 0.2);
+}
+
+.log-stats {
+    display: flex;
+    gap: 20px;
+    padding: 10px 15px;
+    background: #f8f9fa;
+    border-radius: 3px;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.log-stats .error {
+    color: #dc3545;
+}
+
+.log-stats .warning {
+    color: #ffc107;
+}
+
+.log-stats .info {
+    color: #17a2b8;
+}
+
+.log-files-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.log-file-card {
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.log-file-card:hover {
+    background: #e9ecef;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.log-file-card h4 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.log-file-card .meta {
+    font-size: 12px;
+    color: #666;
+}
+
+.log-file-card .meta div {
+    margin: 3px 0;
+}
+
+.badge {
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.badge-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.badge-error {
+    background: #ff6b6b;
+    color: white;
+}
+
+.badge-warning {
+    background: #ffc107;
+    color: #000;
+}
+
+.badge-info {
+    background: #17a2b8;
+    color: white;
+}
+
+.badge-debug {
+    background: #6c757d;
+    color: white;
+}
+
+#status-badge {
+    background: #28a745;
+    color: white;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 13px;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+}
+</style>
+
+<script>
+let autoRefreshInterval = null;
+let currentLog = 'app.log';
+
+// Load logs on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadLogs();
+    loadLogFiles();
+    startAutoRefresh();
+});
+
+function loadLogs() {
+    const logFile = document.getElementById('log-select').value;
+    const lineCount = document.getElementById('line-count').value;
+
+    fetch(`/api/logs/${logFile}?lines=${lineCount}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.content) {
+                displayLogs(data.content);
+                updateLogInfo(data);
+                updateStats(data.content);
+            } else {
+                document.getElementById('log-content').innerHTML = '<div class="loading">No log data available</div>';
+            }
+
+            document.getElementById('last-updated').textContent =
+                `Last updated: ${new Date().toLocaleTimeString()}`;
+        })
+        .catch(error => {
+            console.error('Error loading logs:', error);
+            document.getElementById('log-content').innerHTML =
+                '<div class="loading" style="color:#dc3545;">Error loading logs</div>';
+        });
+}
+
+function displayLogs(content) {
+    const logContent = document.getElementById('log-content');
+    const lines = content.split('\n');
+
+    let html = '';
+    lines.forEach(line => {
+        if (!line.trim()) return;
+
+        let className = 'log-line';
+        if (line.includes('ERROR') || line.includes('CRITICAL')) {
+            className += ' error';
+        } else if (line.includes('WARNING')) {
+            className += ' warning';
+        } else if (line.includes('INFO')) {
+            className += ' info';
+        } else if (line.includes('DEBUG')) {
+            className += ' debug';
+        }
+
+        html += `<div class="${className}">${escapeHtml(line)}</div>`;
+    });
+
+    logContent.innerHTML = html || '<div class="loading">No log entries</div>';
+
+    // Auto-scroll to bottom if enabled
+    if (document.getElementById('auto-scroll').checked) {
+        logContent.scrollTop = logContent.scrollHeight;
+    }
+}
+
+function updateLogInfo(data) {
+    document.getElementById('log-size').textContent = `Size: ${data.size_human || 'Unknown'}`;
+    document.getElementById('log-modified').textContent = `Modified: ${data.modified || 'Unknown'}`;
+}
+
+function updateStats(content) {
+    const lines = content.split('\n');
+    const errors = lines.filter(l => l.includes('ERROR') || l.includes('CRITICAL')).length;
+    const warnings = lines.filter(l => l.includes('WARNING')).length;
+    const info = lines.filter(l => l.includes('INFO')).length;
+
+    document.getElementById('total-lines').textContent = lines.length;
+    document.getElementById('error-count').textContent = errors;
+    document.getElementById('warning-count').textContent = warnings;
+    document.getElementById('info-count').textContent = info;
+    document.getElementById('log-stats').style.display = 'flex';
+}
+
+function switchLog() {
+    currentLog = document.getElementById('log-select').value;
+    const logNames = {
+        'app.log': 'Application Log',
+        'error.log': 'Error Log',
+        'access.log': 'Access Log',
+        'update.log': 'Update Log',
+        'feed.log': 'Feed Log'
+    };
+    document.getElementById('current-log-name').textContent = logNames[currentLog];
+    loadLogs();
+}
+
+function refreshLogs() {
+    const icon = document.getElementById('refresh-icon');
+    icon.style.animation = 'spin 1s linear';
+    loadLogs();
+    setTimeout(() => { icon.style.animation = ''; }, 1000);
+}
+
+function toggleAutoRefresh() {
+    if (document.getElementById('auto-refresh').checked) {
+        startAutoRefresh();
+    } else {
+        stopAutoRefresh();
+    }
+}
+
+function startAutoRefresh() {
+    stopAutoRefresh(); // Clear any existing interval
+    if (document.getElementById('auto-refresh').checked) {
+        autoRefreshInterval = setInterval(loadLogs, 5000); // 5 seconds
+    }
+}
+
+function stopAutoRefresh() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+    }
+}
+
+function filterLogs() {
+    const searchTerm = document.getElementById('log-search').value.toLowerCase();
+    const logLines = document.querySelectorAll('.log-line');
+
+    logLines.forEach(line => {
+        if (searchTerm === '' || line.textContent.toLowerCase().includes(searchTerm)) {
+            line.style.display = '';
+            if (searchTerm !== '') {
+                line.classList.add('highlight');
+            } else {
+                line.classList.remove('highlight');
+            }
+        } else {
+            line.style.display = 'none';
+        }
+    });
+}
+
+function clearSearch() {
+    document.getElementById('log-search').value = '';
+    filterLogs();
+}
+
+function downloadLog() {
+    const logFile = document.getElementById('log-select').value;
+    window.location.href = `/api/logs/${logFile}/download`;
+}
+
+function clearLog() {
+    if (!confirm('Are you sure you want to clear this log file?')) {
+        return;
+    }
+
+    const logFile = document.getElementById('log-select').value;
+    fetch(`/api/logs/${logFile}/clear`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Log file cleared');
+                loadLogs();
+            } else {
+                alert('Failed to clear log file');
+            }
+        });
+}
+
+function loadLogFiles() {
+    fetch('/api/logs/list')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('log-files-list');
+            container.innerHTML = '';
+
+            data.log_files.forEach(log => {
+                const card = document.createElement('div');
+                card.className = 'log-file-card';
+                card.onclick = () => {
+                    document.getElementById('log-select').value = log.filename;
+                    switchLog();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                };
+
+                card.innerHTML = `
+                    <h4>${log.name}</h4>
+                    <div class="meta">
+                        <div>📁 ${log.filename}</div>
+                        <div>💾 ${log.size_human}</div>
+                        <div>🕐 ${log.modified}</div>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', stopAutoRefresh);
+</script>
+{% endblock %}

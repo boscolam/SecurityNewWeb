@@ -78,6 +78,12 @@
                        class="{% if request.endpoint == 'updates_page' %}active{% endif %}">
                     <i class="fas fa-sync-alt"></i> Updates
                 </a></li>
+
+                <!-- Logs: system logs and troubleshooting -->
+                <li><a href="{{ url_for('logs_page') }}"
+                       class="{% if request.endpoint == 'logs_page' %}active{% endif %}">
+                    <i class="fas fa-file-alt"></i> Logs
+                </a></li>
             </ul>
         </div>
     </nav>

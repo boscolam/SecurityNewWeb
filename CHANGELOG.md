@@ -2,6 +2,134 @@
 
 All notable changes to the Cybersecurity News Dashboard will be documented in this file.
 
+## [2.3.0] - 2026-09-22
+
+### Added - Comprehensive Logging Architecture
+
+Implemented comprehensive logging system with real-time web viewing and auto-restart after updates.
+
+#### New Features
+- **Structured Logging System**: Centralized logging with multiple log files
+  - `app.log` - Application events and operations
+  - `error.log` - Errors and exceptions with tracebacks
+  - `access.log` - HTTP request logging
+  - `update.log` - Git update operations and history
+  - `feed.log` - RSS feed fetch operations
+  - Automatic log rotation (10MB max, 5 backups per file)
+  - Detailed and simple log formats
+
+- **Web-Based Log Viewer**: Real-time log monitoring at `/logs`
+  - View any log file in the browser
+  - Auto-refresh every 5 seconds
+  - Auto-scroll to latest entries
+  - Search/filter logs by keyword
+  - Color-coded by level (ERROR=red, WARNING=yellow, INFO=blue, DEBUG=green)
+  - Statistics: total lines, error count, warning count
+  - Download logs as files
+  - Clear logs from web interface
+  - Line count selector (50, 100, 200, 500, 1000 lines)
+  - Toggle auto-refresh and auto-scroll
+
+- **Auto-Restart After Updates**: Automatic service restart capability
+  - Detects if running as systemd service (user or system mode)
+  - Automatically restarts service after successful git pull
+  - Configurable via `restart_after_update` setting
+  - Logs restart operations to update.log
+  - Graceful fallback if not running as service
+
+#### Components Added
+- `logger_config.py`: Core logging configuration module
+  - `setup_logger()` - Configure loggers with rotation
+  - `log_app()`, `log_error()`, `log_access()`, `log_update()`, `log_feed()` - Helper functions
+  - `get_log_files()` - List log files with metadata
+  - `get_log_tail()` - Read last N lines from log
+  - `clear_log()` - Clear log file content
+  
+- `templates/logs.html`: Web interface for log viewing
+  - Responsive design with dark code-style viewer
+  - Real-time updates with JavaScript
+  - Multiple controls and filters
+  - Troubleshooting tips section
+  - Log level badges and color coding
+
+#### API Endpoints Added
+- `GET /logs` - Logs viewing page
+- `GET /api/logs/list` - List all log files with metadata
+- `GET /api/logs/<log_name>?lines=N` - Get last N lines from log
+- `GET /api/logs/<log_name>/download` - Download log file
+- `POST /api/logs/<log_name>/clear` - Clear log file
+
+#### Enhanced git_updater.py
+- `restart_service()` - Restart systemd service method
+- `_detect_service_mode()` - Detect user/system service mode
+- Integrated with logger_config for structured update logging
+- Auto-restart after successful update if enabled
+- Logs all git operations to update.log
+
+#### Documentation Added
+- **LOGGING_GUIDE.md**: Comprehensive 480-line logging guide
+  - Log files overview and rotation
+  - Web interface features
+  - Detailed description of each log type
+  - Log levels explanation
+  - Troubleshooting with logs
+  - Log analysis tips
+  - Real-time monitoring
+  - Log management (clear, backup, rotation)
+  - Best practices
+  - Diagnostic bundle creation
+
+#### Navigation Updated
+- Added "Logs" link to main navigation in `base.html`
+- Icon: 📋 (file-alt)
+- Accessible from any page
+
+#### Benefits
+✅ **Better Troubleshooting**: Dedicated log files for each component  
+✅ **Real-Time Monitoring**: Watch logs live in browser  
+✅ **Search & Filter**: Find specific errors quickly  
+✅ **Auto-Restart**: Service automatically restarts after updates  
+✅ **Log Rotation**: Prevents disk space issues  
+✅ **Color Coding**: Easy identification of errors/warnings  
+✅ **Downloadable**: Export logs for support  
+✅ **Comprehensive Guide**: Complete documentation for troubleshooting  
+
+#### Usage Examples
+
+**View Logs in Browser:**
+```
+http://localhost:5000/logs
+```
+
+**Check Update Log:**
+```bash
+tail -f logs/update.log
+```
+
+**View Error Log:**
+```bash
+grep ERROR logs/error.log
+```
+
+**Monitor Feed Operations:**
+```bash
+grep "Fetching" logs/feed.log
+```
+
+**Enable Auto-Restart After Updates:**
+```
+Go to /settings
+Set "restart_after_update" to "true"
+```
+
+### Modified
+- app.py: Added logging routes and API endpoints
+- templates/base.html: Added Logs navigation link
+- git_updater.py: Enhanced with auto-restart and structured logging
+- VERSION: Updated to 2.3.0
+
+---
+
 ## [2.2.3] - 2026-09-22
 
 ### Added - Comprehensive Health Check & Analysis

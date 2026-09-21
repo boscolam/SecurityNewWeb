@@ -557,6 +557,109 @@ def api_save_update_settings():
 
 
 # ============================================================
+# LOGGING ROUTES
+# ============================================================
+
+@app.route('/logs')
+def logs_page():
+    """System logs viewing page."""
+    return render_template('logs.html')
+
+
+@app.route('/api/logs/list')
+def api_logs_list():
+    """Get list of all log files with metadata."""
+    try:
+        from logger_config import get_log_files
+        log_files = get_log_files()
+        return jsonify({'log_files': log_files})
+    except Exception as e:
+        logger.error(f"Error listing log files: {e}")
+        return jsonify({'log_files': [], 'error': str(e)})
+
+
+@app.route('/api/logs/<log_name>')
+def api_logs_tail(log_name):
+    """Get last N lines from a log file."""
+    try:
+        import os
+        from logger_config import LOG_DIR, get_log_tail, get_log_files
+
+        # Validate log name
+        valid_logs = ['app.log', 'error.log', 'access.log', 'update.log', 'feed.log']
+        if log_name not in valid_logs:
+            return jsonify({'error': 'Invalid log file'}), 400
+
+        log_path = os.path.join(LOG_DIR, log_name)
+        lines = request.args.get('lines', 100, type=int)
+
+        # Get log content
+        content = get_log_tail(log_path, lines)
+
+        # Get log metadata
+        log_files = get_log_files()
+        log_meta = next((lf for lf in log_files if lf['filename'] == log_name), {})
+
+        return jsonify({
+            'content': content,
+            'filename': log_name,
+            'size': log_meta.get('size', 0),
+            'size_human': log_meta.get('size_human', '0 B'),
+            'modified': log_meta.get('modified', 'Unknown')
+        })
+    except Exception as e:
+        logger.error(f"Error reading log file: {e}")
+        return jsonify({'error': str(e), 'content': ''}), 500
+
+
+@app.route('/api/logs/<log_name>/download')
+def api_logs_download(log_name):
+    """Download a log file."""
+    try:
+        import os
+        from flask import send_file
+        from logger_config import LOG_DIR
+
+        # Validate log name
+        valid_logs = ['app.log', 'error.log', 'access.log', 'update.log', 'feed.log']
+        if log_name not in valid_logs:
+            return jsonify({'error': 'Invalid log file'}), 400
+
+        log_path = os.path.join(LOG_DIR, log_name)
+
+        if not os.path.exists(log_path):
+            return jsonify({'error': 'Log file not found'}), 404
+
+        return send_file(log_path, as_attachment=True, download_name=log_name)
+    except Exception as e:
+        logger.error(f"Error downloading log file: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/logs/<log_name>/clear', methods=['POST'])
+def api_logs_clear(log_name):
+    """Clear a log file."""
+    try:
+        import os
+        from logger_config import LOG_DIR, clear_log
+
+        # Validate log name
+        valid_logs = ['app.log', 'error.log', 'access.log', 'update.log', 'feed.log']
+        if log_name not in valid_logs:
+            return jsonify({'error': 'Invalid log file', 'success': False}), 400
+
+        log_path = os.path.join(LOG_DIR, log_name)
+
+        if clear_log(log_path):
+            return jsonify({'success': True, 'message': f'{log_name} cleared'})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to clear log file'}), 500
+    except Exception as e:
+        logger.error(f"Error clearing log file: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ============================================================
 # TEMPLATE FILTERS
 # ============================================================
 

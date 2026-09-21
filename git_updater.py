@@ -10,7 +10,16 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
+# Try to use the new logging system, fall back to standard logging
+try:
+    from logger_config import update_logger, log_update
+    logger = update_logger
+    use_structured_logging = True
+except ImportError:
+    logger = logging.getLogger(__name__)
+    use_structured_logging = False
+    def log_update(msg):
+        logger.info(msg)
 
 # Get the base directory of the application
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -102,6 +111,7 @@ class GitUpdater:
             }
 
         # Fetch latest from remote
+        log_update("Checking for updates...")
         logger.info("Fetching latest changes from remote...")
         success, output, error = self._run_git_command(['git', 'fetch', 'origin'])
         if not success:
@@ -140,6 +150,7 @@ class GitUpdater:
                 'git', 'log', '--oneline', f'HEAD..origin/{branch}'
             ])
 
+            log_update(f"Updates available: {commits_behind} new commit(s)")
             return {
                 'available': True,
                 'commits_behind': commits_behind,
@@ -149,6 +160,7 @@ class GitUpdater:
                 'message': f'{commits_behind} new commit(s) available'
             }
         else:
+            log_update("Already up to date")
             return {
                 'available': False,
                 'commits_behind': 0,
@@ -216,10 +228,12 @@ class GitUpdater:
         branch = self.get_current_branch()
 
         # Perform git pull
+        log_update(f"Pulling latest changes from branch: {branch}")
         logger.info("Pulling latest changes from remote...")
         success, output, error = self._run_git_command(['git', 'pull', 'origin', branch])
 
         if not success:
+            log_update(f"Git pull failed: {error}")
             logger.error(f"Git pull failed: {error}")
             return {
                 'success': False,
@@ -233,8 +247,10 @@ class GitUpdater:
         # Check if anything was updated
         if old_commit == new_commit:
             message = "Already up to date"
+            log_update(message)
         else:
             message = f"Updated from {old_commit[:7]} to {new_commit[:7]}"
+            log_update(f"Git pull successful: {message}")
 
             # Make scripts executable after update
             self._make_scripts_executable()
@@ -250,13 +266,29 @@ class GitUpdater:
         })
 
         logger.info(message)
-        return {
+
+        result = {
             'success': True,
             'message': message,
             'old_commit': old_commit,
             'new_commit': new_commit,
             'output': output
         }
+
+        # Check if restart is requested and something was updated
+        if old_commit != new_commit:
+            from database import get_setting
+            restart_after_update = get_setting('restart_after_update', 'false').lower() == 'true'
+
+            if restart_after_update:
+                restart_result = self.restart_service()
+                result['restart'] = restart_result
+                if restart_result['success']:
+                    result['message'] += ' - Service restarted'
+                else:
+                    result['message'] += ' - Manual restart required'
+
+        return result
 
     def _make_scripts_executable(self):
         """Make shell scripts executable after update."""
@@ -270,6 +302,102 @@ class GitUpdater:
                     logger.info(f"Made {script} executable")
         except Exception as e:
             logger.warning(f"Failed to make scripts executable: {e}")
+
+    def _detect_service_mode(self):
+        """
+        Detect if application is running as a systemd service.
+
+        Returns:
+            Tuple of (is_service, service_type) where service_type is 'user' or 'system' or None
+        """
+        try:
+            # Check if running under systemd
+            if not os.path.exists('/run/systemd/system'):
+                return False, None
+
+            # Try to detect service type
+            # Check for user service
+            result = subprocess.run(
+                ['systemctl', '--user', 'is-active', 'cybersec-news'],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            if result.returncode == 0:
+                return True, 'user'
+
+            # Check for system service
+            result = subprocess.run(
+                ['systemctl', 'is-active', 'cybersec-news'],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            if result.returncode == 0:
+                return True, 'system'
+
+            return False, None
+        except Exception as e:
+            logger.warning(f"Failed to detect service mode: {e}")
+            return False, None
+
+    def restart_service(self):
+        """
+        Restart the application service if running as systemd service.
+
+        Returns:
+            dict with success status and message
+        """
+        is_service, service_type = self._detect_service_mode()
+
+        if not is_service:
+            log_update("Not running as systemd service - manual restart required")
+            return {
+                'success': False,
+                'error': 'Not running as a systemd service',
+                'message': 'Service restart not applicable - please restart manually'
+            }
+
+        try:
+            log_update(f"Restarting {service_type} service...")
+            logger.info(f"Restarting {service_type} service...")
+
+            if service_type == 'user':
+                cmd = ['systemctl', '--user', 'restart', 'cybersec-news']
+            else:
+                cmd = ['sudo', 'systemctl', 'restart', 'cybersec-news']
+
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+
+            if result.returncode == 0:
+                log_update(f"Service restarted successfully ({service_type} mode)")
+                logger.info(f"Service restarted successfully ({service_type} mode)")
+                return {
+                    'success': True,
+                    'message': f'Service restarted successfully ({service_type} mode)',
+                    'service_type': service_type
+                }
+            else:
+                log_update(f"Service restart failed: {result.stderr}")
+                logger.error(f"Service restart failed: {result.stderr}")
+                return {
+                    'success': False,
+                    'error': result.stderr,
+                    'message': f'Service restart failed: {result.stderr}'
+                }
+        except Exception as e:
+            log_update(f"Exception during service restart: {str(e)}")
+            logger.error(f"Exception during service restart: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'message': f'Service restart failed: {str(e)}'
+            }
 
     def _log_update(self, update_info):
         """Log update information to file."""
