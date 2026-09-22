@@ -2,6 +2,42 @@
 
 All notable changes to the Cybersecurity News Dashboard will be documented in this file.
 
+## [2.4.1] - 2026-09-22
+
+### Improved - Settings Consolidation & URL Display Fix
+
+#### Navigation Reorganization
+- **Moved Updates and Logs under Settings page** as tabs
+  - Settings page now has 4 tabs: Application Settings, Feed Sources, Updates, Logs
+  - Top navigation simplified: removed separate Updates and Logs menu items
+  - All configuration and system pages grouped under one Settings entry
+  - Consistent tabbed navigation across all 4 sub-pages
+
+#### URL Display Fix
+- **Fixed long URLs overflowing** in Auto-Discovered Feeds cards
+  - URLs now display on **multiple lines** using CSS `word-break: break-all`
+  - Full URL visible without overflow or truncation
+  - URL displayed in styled box with monospace font for readability
+  - "Found via" text also wraps properly on multiple lines
+  - Source table URLs also wrap instead of being truncated
+
+#### Navigation Before vs After
+```
+Before: Dashboard | News | CVE | Priorities | Settings | Updates | Logs
+After:  Dashboard | News | CVE | Priorities | Settings
+                                               └─> [App Settings] [Sources] [Updates] [Logs]
+```
+
+#### Files Modified
+- templates/base.html: Removed Updates/Logs from top nav
+- templates/settings.html: Added Updates/Logs tabs
+- templates/sources.html: Added Updates/Logs tabs, fixed URL display
+- templates/updates.html: Added Settings tabs header
+- templates/logs.html: Added Settings tabs header
+- static/css/style.css: Added URL wrapping styles for discovered feeds and source table
+
+---
+
 ## [2.4.0] - 2026-09-22
 
 ### Added - Interactive UI with Clickable Badges & Filters

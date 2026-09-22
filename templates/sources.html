@@ -38,6 +38,12 @@
         <a href="{{ url_for('sources_page') }}" class="tab-link active">
             <i class="fas fa-rss"></i> Feed Sources
         </a>
+        <a href="{{ url_for('updates_page') }}" class="tab-link">
+            <i class="fas fa-sync-alt"></i> Updates
+        </a>
+        <a href="{{ url_for('logs_page') }}" class="tab-link">
+            <i class="fas fa-file-alt"></i> Logs
+        </a>
     </div>
 
     <!-- ============================================================
@@ -133,10 +139,10 @@
                 <tbody>
                     {% for source in sources %}
                     <tr class="{% if not source.enabled %}disabled-row{% endif %}">
-                        <td>
-                            <!-- Source name with truncated URL shown below -->
+                        <td class="source-name-cell">
+                            <!-- Source name with URL shown below -->
                             <strong>{{ source.name }}</strong>
-                            <br><small class="text-muted">{{ source.url[:60] }}{% if source.url|length > 60 %}...{% endif %}</small>
+                            <br><small class="text-muted source-url-wrap">{{ source.url }}</small>
                             {% if source.auto_discovered %}
                             <span class="badge badge-info" title="Automatically discovered by the system">Auto</span>
                             {% endif %}
@@ -264,18 +270,21 @@
         <div class="discovered-grid">
             {% for feed in discovered %}
             <div class="discovered-card {% if feed.approved %}approved{% endif %}">
-                <h4 title="{{ feed.name }}">
-                    {{ feed.name[:60] }}{% if feed.name|length > 60 %}...{% endif %}
+                <h4 class="feed-name" title="{{ feed.name }}">
+                    {{ feed.name }}
                 </h4>
-                <p class="text-muted" title="{{ feed.url }}">
-                    <small>{{ feed.url[:70] }}{% if feed.url|length > 70 %}...{% endif %}</small>
-                </p>
+                <div class="feed-url">
+                    <strong>URL:</strong>
+                    <p class="url-text">{{ feed.url }}</p>
+                </div>
                 <div class="discovered-meta">
                     <span class="badge badge-info">{{ feed.category }}</span>
                     <span class="badge badge-secondary">{{ feed.region|region_label }}</span>
-                    <span class="text-muted" title="{{ feed.discovered_from }}">
-                        <small>Found via: {{ feed.discovered_from[:40] }}{% if feed.discovered_from|length > 40 %}...{% endif %}</small>
-                    </span>
+                </div>
+                <div class="discovered-from">
+                    <small class="text-muted">
+                        <strong>Found via:</strong> {{ feed.discovered_from }}
+                    </small>
                 </div>
                 {% if not feed.approved %}
                 <div class="discovered-actions">

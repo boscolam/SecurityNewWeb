@@ -1490,3 +1490,125 @@ pre {
 .clickable:focus:not(:focus-visible) {
     outline: none;
 }
+
+/* ============================================================
+   AUTO-DISCOVERED FEEDS - URL WRAPPING
+   Enhanced display for long URLs and metadata
+   ============================================================ */
+
+/* Feed name - allow wrapping */
+.discovered-card .feed-name {
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+/* URL display section */
+.feed-url {
+    margin: 12px 0;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    border-left: 3px solid var(--info);
+}
+
+.feed-url strong {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--info);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* URL text - force wrapping */
+.url-text {
+    word-wrap: break-word;
+    word-break: break-all;  /* Break at any character for URLs */
+    overflow-wrap: anywhere;
+    white-space: normal;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    max-width: 100%;
+}
+
+/* Discovered from section */
+.discovered-from {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+}
+
+.discovered-from small {
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    display: block;
+    line-height: 1.5;
+}
+
+.discovered-from strong {
+    color: var(--text-primary);
+}
+
+/* Discovered card adjustments */
+.discovered-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;  /* Prevent any overflow */
+}
+
+/* Discovered meta - ensure it doesn't overflow */
+.discovered-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0;
+}
+
+/* Discovered actions - full width */
+.discovered-actions {
+    margin-top: auto;  /* Push to bottom */
+    padding-top: 12px;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+/* Mobile: Stack URL display */
+@media (max-width: 768px) {
+    .feed-url {
+        padding: 8px;
+    }
+
+    .url-text {
+        font-size: 11px;
+    }
+
+    .discovered-from small {
+        font-size: 11px;
+    }
+}
+
+/* Source table - URL wrapping */
+.source-name-cell {
+    max-width: 350px;
+    min-width: 200px;
+}
+
+.source-url-wrap {
+    word-wrap: break-word;
+    word-break: break-all;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    display: inline-block;
+    max-width: 100%;
+    line-height: 1.5;
+}

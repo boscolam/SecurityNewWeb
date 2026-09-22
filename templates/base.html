@@ -61,22 +61,10 @@
                     <i class="fas fa-sort-amount-up"></i> Priorities
                 </a></li>
 
-                <!-- Settings: application configuration & sources management -->
+                <!-- Settings: application configuration, sources, updates, and logs -->
                 <li><a href="{{ url_for('settings_page') }}"
-                       class="{% if request.endpoint in ['settings_page', 'sources_page'] %}active{% endif %}">
+                       class="{% if request.endpoint in ['settings_page', 'sources_page', 'updates_page', 'logs_page'] %}active{% endif %}">
                     <i class="fas fa-cog"></i> Settings
-                </a></li>
-
-                <!-- Updates: system updates and auto-update configuration -->
-                <li><a href="{{ url_for('updates_page') }}"
-                       class="{% if request.endpoint == 'updates_page' %}active{% endif %}">
-                    <i class="fas fa-sync-alt"></i> Updates
-                </a></li>
-
-                <!-- Logs: system logs and troubleshooting -->
-                <li><a href="{{ url_for('logs_page') }}"
-                       class="{% if request.endpoint == 'logs_page' %}active{% endif %}">
-                    <i class="fas fa-file-alt"></i> Logs
                 </a></li>
             </ul>
         </div>
