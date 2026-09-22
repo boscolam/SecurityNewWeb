@@ -2,6 +2,22 @@
 
 All notable changes to the Cybersecurity News Dashboard will be documented in this file.
 
+## [2.8.2] - 2026-09-23
+
+### Fixed — AI Insights Page Visibility on Dark Theme
+
+#### AI Insights Dark Theme Fix
+- **Fixed all text invisible on dark background** — page was using light-theme colors (dark text on dark bg)
+- Replaced all hardcoded light colors with CSS variables (`var(--text-primary)`, `var(--bg-card)`, etc.)
+- Topic headers, article titles, meta text, summaries, trend chips, source tags, dropdown, and labels now visible
+- Borders and dividers updated to use `var(--border)` for dark theme consistency
+
+#### Bug Verification
+- All prior fixes confirmed intact (secret key, BuildError prevention, sort validation, log propagation, discovered feed name fallback)
+- All Python files pass `py_compile`
+
+---
+
 ## [2.8.1] - 2026-09-23
 
 ### Security — Removed Hardcoded Secret Key

@@ -11,7 +11,7 @@
         gap: 12px;
         margin-bottom: 20px;
     }
-    .insights-header h1 { margin: 0; }
+    .insights-header h1 { margin: 0; color: var(--text-primary); }
     .period-select {
         display: inline-flex;
         align-items: center;
@@ -19,15 +19,16 @@
     }
     .period-select label {
         font-size: 13px;
-        color: #6c757d;
+        color: var(--text-secondary);
         white-space: nowrap;
     }
     .period-select select {
         padding: 6px 10px;
         border-radius: 6px;
-        border: 1px solid #dee2e6;
+        border: 1px solid var(--border);
         font-size: 13px;
-        background: #fff;
+        background: var(--bg-input);
+        color: var(--text-primary);
     }
 
     .stats-bar {
@@ -38,7 +39,7 @@
         padding: 14px 20px;
         background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
         border-radius: 10px;
-        color: #fff;
+        border: 1px solid var(--border);
     }
     .stats-bar .stat {
         text-align: center;
@@ -50,7 +51,7 @@
     }
     .stats-bar .stat-label {
         font-size: 11px;
-        color: #8899aa;
+        color: var(--text-secondary);
         text-transform: uppercase;
         letter-spacing: 1px;
     }
@@ -61,6 +62,7 @@
     .trending-section h2 {
         font-size: 16px;
         margin-bottom: 12px;
+        color: var(--text-primary);
     }
     .trend-chips {
         display: flex;
@@ -75,13 +77,15 @@
         border-radius: 20px;
         font-size: 13px;
         font-weight: 500;
-        background: #f0f4f8;
-        border: 1px solid #e2e8f0;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text-primary);
         transition: all 0.2s;
     }
     .trend-chip:hover {
         transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        background: var(--bg-card-hover);
     }
     .trend-chip .arrow {
         color: #34c759;
@@ -94,10 +98,11 @@
     }
 
     .topic-section {
-        margin-bottom: 28px;
-        border: 1px solid #e2e8f0;
+        margin-bottom: 20px;
+        border: 1px solid var(--border);
         border-radius: 10px;
         overflow: hidden;
+        background: var(--bg-card);
     }
     .topic-header {
         display: flex;
@@ -109,7 +114,7 @@
         transition: background 0.2s;
     }
     .topic-header:hover {
-        filter: brightness(1.05);
+        background: var(--bg-card-hover) !important;
     }
     .topic-icon {
         width: 34px;
@@ -125,19 +130,18 @@
     .topic-name {
         font-size: 15px;
         font-weight: 600;
-        color: #1a202c;
+        color: var(--text-primary);
         flex: 1;
     }
     .topic-count {
         font-size: 12px;
         color: #fff;
-        background: rgba(0,0,0,0.15);
         padding: 2px 10px;
         border-radius: 12px;
         font-weight: 600;
     }
     .topic-toggle {
-        color: #a0aec0;
+        color: var(--text-secondary);
         font-size: 12px;
         transition: transform 0.3s;
     }
@@ -157,23 +161,23 @@
         flex-wrap: wrap;
         margin-bottom: 12px;
         padding-bottom: 10px;
-        border-bottom: 1px solid #f0f0f0;
+        border-bottom: 1px solid var(--border);
     }
     .topic-sources .src-tag {
         font-size: 11px;
         padding: 3px 10px;
         border-radius: 12px;
-        background: #edf2f7;
-        color: #4a5568;
+        background: var(--bg-input);
+        color: var(--text-secondary);
     }
     .topic-sources .src-count {
         font-weight: 700;
-        color: #2d3748;
+        color: var(--text-primary);
     }
 
     .insight-card {
         padding: 12px 0;
-        border-bottom: 1px solid #f0f4f8;
+        border-bottom: 1px solid var(--border);
         display: flex;
         gap: 12px;
         align-items: flex-start;
@@ -199,23 +203,23 @@
         margin-bottom: 4px;
     }
     .insight-title a {
-        color: #1a202c;
+        color: var(--text-primary);
         text-decoration: none;
     }
     .insight-title a:hover {
-        color: #3182ce;
+        color: var(--primary-light);
         text-decoration: underline;
     }
     .insight-meta {
         font-size: 12px;
-        color: #718096;
+        color: var(--text-secondary);
         display: flex;
         gap: 12px;
         flex-wrap: wrap;
     }
     .insight-summary {
         font-size: 13px;
-        color: #4a5568;
+        color: var(--text-secondary);
         margin-top: 4px;
         line-height: 1.4;
     }
@@ -223,9 +227,11 @@
     .no-data {
         text-align: center;
         padding: 60px 20px;
-        color: #a0aec0;
+        color: var(--text-muted);
     }
     .no-data i { font-size: 48px; margin-bottom: 16px; display: block; }
+    .no-data h3 { color: var(--text-secondary); }
+    .no-data p { color: var(--text-muted); }
 </style>
 {% endblock %}
 

@@ -2,7 +2,7 @@
 
 A comprehensive Flask-based web application that aggregates cybersecurity news from multiple sources including RSS feeds, vendor security blogs, dark web intelligence, CVE databases, and social media platforms.
 
-![Version](https://img.shields.io/badge/version-2.8.1-blue.svg)
+![Version](https://img.shields.io/badge/version-2.8.2-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
 ![Flask](https://img.shields.io/badge/Flask-3.0.0-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
