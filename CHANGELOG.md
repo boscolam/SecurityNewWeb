@@ -2,6 +2,19 @@
 
 All notable changes to the Cybersecurity News Dashboard will be documented in this file.
 
+## [2.5.2] - 2026-09-22
+
+### Improved - World Map Background for Attack Map
+
+- **Added continent outlines** to the attack map canvas background
+  - 20 landmass polygons (continents, major islands) drawn as filled shapes
+  - Includes: North America, South America, Europe, Africa, Asia (with Arabian Peninsula & India), Japan, Australia, New Zealand, UK, Iceland, Philippines, Taiwan, Korea, Indonesia, Sri Lanka, Madagascar
+  - Subtle dark fill (#0e1a2e) with faint border (#18283f) for a professional look
+  - Grid lines made fainter to let the landmasses stand out
+  - Countries now visually recognizable on the map background
+
+---
+
 ## [2.5.1] - 2026-09-22
 
 ### Fixed - Attack Map BuildError
