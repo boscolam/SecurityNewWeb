@@ -61,6 +61,12 @@
                     <i class="fas fa-sort-amount-up"></i> Priorities
                 </a></li>
 
+                <!-- Attack Map: real-time cyber threat visualization -->
+                <li><a href="{{ url_for('attack_map_page') }}"
+                       class="{% if request.endpoint == 'attack_map_page' %}active{% endif %}">
+                    <i class="fas fa-globe-americas"></i> Attack Map
+                </a></li>
+
                 <!-- Settings: application configuration, sources, updates, and logs -->
                 <li><a href="{{ url_for('settings_page') }}"
                        class="{% if request.endpoint in ['settings_page', 'sources_page', 'updates_page', 'logs_page'] %}active{% endif %}">

@@ -1,0 +1,765 @@
+{% extends "base.html" %}
+{% block title %}Cyber Attack Map - CyberSec News{% endblock %}
+
+{% block extra_head %}
+<style>
+    .main-content { padding: 0 !important; min-height: auto !important; }
+    .footer { display: none !important; }
+
+    .attack-map-wrapper {
+        position: relative;
+        width: 100%;
+        height: calc(100vh - 60px);
+        overflow: hidden;
+        background: #060a14;
+    }
+
+    #attackMapCanvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .map-header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 12px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: linear-gradient(180deg, rgba(6,10,20,0.95) 0%, rgba(6,10,20,0.6) 60%, transparent 100%);
+        z-index: 10;
+        pointer-events: none;
+    }
+
+    .map-header h2 {
+        color: #00d4ff;
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 2px;
+        margin: 0;
+        text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+    }
+
+    .map-time {
+        color: #506070;
+        font-size: 12px;
+        font-family: 'Courier New', monospace;
+    }
+
+    .map-panel {
+        position: absolute;
+        background: rgba(6, 10, 20, 0.88);
+        border: 1px solid rgba(0, 212, 255, 0.12);
+        border-radius: 6px;
+        padding: 12px 15px;
+        z-index: 10;
+    }
+
+    .map-panel h3 {
+        color: #00d4ff;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 2px;
+        margin: 0 0 10px 0;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(0, 212, 255, 0.08);
+    }
+
+    .map-stats {
+        top: 55px;
+        left: 15px;
+        min-width: 155px;
+    }
+
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 3px 0;
+    }
+
+    .stat-value {
+        color: #e4e6eb;
+        font-size: 17px;
+        font-weight: 700;
+        font-family: 'Courier New', monospace;
+    }
+
+    .stat-label {
+        color: #506070;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .stat-item.critical .stat-value { color: #ff2d55; }
+    .stat-item.high .stat-value { color: #ff9500; }
+
+    .map-attackers {
+        bottom: 55px;
+        left: 15px;
+        min-width: 175px;
+    }
+
+    .attacker-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 3px 0;
+        color: #8090a0;
+        font-size: 11px;
+    }
+
+    .attacker-bar {
+        height: 3px;
+        background: rgba(255, 45, 85, 0.4);
+        border-radius: 2px;
+        margin-top: 2px;
+        transition: width 0.3s;
+    }
+
+    .attacker-count {
+        color: #ff2d55;
+        font-weight: 600;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+    }
+
+    .map-log {
+        top: 55px;
+        right: 15px;
+        bottom: 55px;
+        width: 270px;
+        overflow-y: auto;
+    }
+
+    .map-log::-webkit-scrollbar { width: 3px; }
+    .map-log::-webkit-scrollbar-track { background: transparent; }
+    .map-log::-webkit-scrollbar-thumb { background: rgba(0, 212, 255, 0.15); border-radius: 2px; }
+
+    .log-entry {
+        padding: 7px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+        animation: logFadeIn 0.4s ease;
+    }
+
+    @keyframes logFadeIn {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .log-title {
+        color: #b0c0d0;
+        font-size: 11px;
+        line-height: 1.4;
+        margin-bottom: 2px;
+    }
+
+    .log-route {
+        color: #506070;
+        font-size: 10px;
+    }
+
+    .log-route .src { color: #ff2d55; }
+    .log-route .tgt { color: #00d4ff; }
+    .log-route .arrow { color: #304050; }
+
+    .log-severity {
+        display: inline-block;
+        padding: 1px 5px;
+        border-radius: 2px;
+        font-size: 9px;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-right: 4px;
+        vertical-align: middle;
+    }
+
+    .log-severity.critical { background: rgba(255,45,85,0.15); color: #ff2d55; }
+    .log-severity.high { background: rgba(255,149,0,0.15); color: #ff9500; }
+    .log-severity.medium { background: rgba(255,204,0,0.15); color: #ffcc00; }
+    .log-severity.low { background: rgba(48,209,88,0.15); color: #30d158; }
+
+    .map-legend {
+        position: absolute;
+        bottom: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 18px;
+        padding: 7px 20px;
+        background: rgba(6, 10, 20, 0.88);
+        border: 1px solid rgba(0, 212, 255, 0.12);
+        border-radius: 20px;
+        z-index: 10;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: #506070;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .legend-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .legend-dot.critical { background: #ff2d55; box-shadow: 0 0 6px rgba(255,45,85,0.6); }
+    .legend-dot.high { background: #ff9500; box-shadow: 0 0 6px rgba(255,149,0,0.6); }
+    .legend-dot.medium { background: #ffcc00; box-shadow: 0 0 6px rgba(255,204,0,0.6); }
+    .legend-dot.low { background: #30d158; box-shadow: 0 0 6px rgba(48,209,88,0.6); }
+
+    .map-controls {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        display: flex;
+        gap: 6px;
+        z-index: 10;
+    }
+
+    .map-btn {
+        width: 34px;
+        height: 34px;
+        border: 1px solid rgba(0, 212, 255, 0.15);
+        background: rgba(6, 10, 20, 0.88);
+        color: #00d4ff;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        transition: all 0.2s;
+    }
+
+    .map-btn:hover {
+        background: rgba(0, 212, 255, 0.1);
+        border-color: rgba(0, 212, 255, 0.3);
+    }
+
+    .map-loading {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #304050;
+        font-size: 13px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        z-index: 5;
+        transition: opacity 0.5s;
+    }
+
+    @media (max-width: 900px) {
+        .map-log { display: none; }
+        .map-attackers { display: none; }
+        .map-stats { min-width: 120px; font-size: 10px; }
+        .map-stats .stat-value { font-size: 14px; }
+        .map-legend { gap: 10px; padding: 6px 12px; }
+        .legend-item { font-size: 9px; }
+    }
+
+    @media (max-width: 600px) {
+        .map-header h2 { font-size: 12px; letter-spacing: 1px; }
+        .map-stats { top: 50px; left: 8px; padding: 8px 10px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="attack-map-wrapper">
+    <canvas id="attackMapCanvas"></canvas>
+
+    <div class="map-loading" id="map-loading">Loading threat data...</div>
+
+    <div class="map-header">
+        <h2><i class="fas fa-globe-americas"></i> REAL-TIME CYBER THREAT MAP</h2>
+        <span class="map-time" id="map-time"></span>
+    </div>
+
+    <div class="map-panel map-stats">
+        <h3>THREAT OVERVIEW</h3>
+        <div class="stat-item">
+            <span class="stat-label">Total Threats</span>
+            <span class="stat-value" id="stat-total">0</span>
+        </div>
+        <div class="stat-item critical">
+            <span class="stat-label">Critical</span>
+            <span class="stat-value" id="stat-critical">0</span>
+        </div>
+        <div class="stat-item high">
+            <span class="stat-label">High</span>
+            <span class="stat-value" id="stat-high">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Countries</span>
+            <span class="stat-value" id="stat-countries">0</span>
+        </div>
+    </div>
+
+    <div class="map-panel map-attackers">
+        <h3>TOP ATTACK ORIGINS</h3>
+        <div id="top-attackers"></div>
+    </div>
+
+    <div class="map-panel map-log">
+        <h3>LIVE ATTACK FEED</h3>
+        <div id="attack-log"></div>
+    </div>
+
+    <div class="map-legend">
+        <span class="legend-item"><span class="legend-dot critical"></span> Critical</span>
+        <span class="legend-item"><span class="legend-dot high"></span> High</span>
+        <span class="legend-item"><span class="legend-dot medium"></span> Medium</span>
+        <span class="legend-item"><span class="legend-dot low"></span> Low</span>
+    </div>
+
+    <div class="map-controls">
+        <button class="map-btn" id="btn-pause" onclick="togglePause()" title="Pause / Resume">
+            <i class="fas fa-pause" id="pause-icon"></i>
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+    'use strict';
+
+    var ARC_SPEED = 0.006;
+    var MAX_ARCS = 35;
+    var SPAWN_MS = 900;
+    var REFRESH_MS = 30000;
+    var IMPACT_MAX = 22;
+    var TRAIL_LEN = 0.22;
+
+    var COLORS = {
+        critical: {r:255, g:45,  b:85},
+        high:     {r:255, g:149, b:0},
+        medium:   {r:255, g:204, b:0},
+        low:      {r:48,  g:209, b:88}
+    };
+
+    var CITIES = [
+        {n:'United States',lat:39.8,lon:-98.6},
+        {n:'New York',lat:40.7,lon:-74.0},
+        {n:'Los Angeles',lat:34.1,lon:-118.2},
+        {n:'Chicago',lat:41.9,lon:-87.6},
+        {n:'Houston',lat:29.8,lon:-95.4},
+        {n:'Washington DC',lat:38.9,lon:-77.0},
+        {n:'San Francisco',lat:37.8,lon:-122.4},
+        {n:'Seattle',lat:47.6,lon:-122.3},
+        {n:'Miami',lat:25.8,lon:-80.2},
+        {n:'Denver',lat:39.7,lon:-105.0},
+        {n:'Atlanta',lat:33.7,lon:-84.4},
+        {n:'Dallas',lat:32.8,lon:-96.8},
+        {n:'Canada',lat:45.4,lon:-75.7},
+        {n:'Toronto',lat:43.7,lon:-79.4},
+        {n:'Vancouver',lat:49.3,lon:-123.1},
+        {n:'Mexico',lat:19.4,lon:-99.1},
+        {n:'Havana',lat:23.1,lon:-82.4},
+        {n:'Brazil',lat:-15.8,lon:-47.9},
+        {n:'Sao Paulo',lat:-23.6,lon:-46.6},
+        {n:'Rio de Janeiro',lat:-22.9,lon:-43.2},
+        {n:'Buenos Aires',lat:-34.6,lon:-58.4},
+        {n:'Lima',lat:-12.0,lon:-77.0},
+        {n:'Bogota',lat:4.7,lon:-74.1},
+        {n:'Santiago',lat:-33.4,lon:-70.7},
+        {n:'Caracas',lat:10.5,lon:-66.9},
+        {n:'United Kingdom',lat:51.5,lon:-0.1},
+        {n:'France',lat:48.9,lon:2.3},
+        {n:'Germany',lat:52.5,lon:13.4},
+        {n:'Spain',lat:40.4,lon:-3.7},
+        {n:'Italy',lat:41.9,lon:12.5},
+        {n:'Netherlands',lat:52.4,lon:4.9},
+        {n:'Belgium',lat:50.8,lon:4.4},
+        {n:'Switzerland',lat:47.4,lon:8.5},
+        {n:'Austria',lat:48.2,lon:16.4},
+        {n:'Poland',lat:52.2,lon:21.0},
+        {n:'Sweden',lat:59.3,lon:18.1},
+        {n:'Norway',lat:59.9,lon:10.7},
+        {n:'Finland',lat:60.2,lon:24.9},
+        {n:'Denmark',lat:55.7,lon:12.6},
+        {n:'Ireland',lat:53.3,lon:-6.3},
+        {n:'Portugal',lat:38.7,lon:-9.1},
+        {n:'Greece',lat:37.9,lon:23.7},
+        {n:'Czech Republic',lat:50.1,lon:14.4},
+        {n:'Romania',lat:44.4,lon:26.1},
+        {n:'Ukraine',lat:50.5,lon:30.5},
+        {n:'Hungary',lat:47.5,lon:19.0},
+        {n:'Russia',lat:55.8,lon:37.6},
+        {n:'St Petersburg',lat:59.9,lon:30.3},
+        {n:'Novosibirsk',lat:55.0,lon:82.9},
+        {n:'Vladivostok',lat:43.1,lon:131.9},
+        {n:'Turkey',lat:39.9,lon:32.9},
+        {n:'Israel',lat:32.1,lon:34.8},
+        {n:'Saudi Arabia',lat:24.7,lon:46.7},
+        {n:'UAE',lat:25.2,lon:55.3},
+        {n:'Iran',lat:35.7,lon:51.4},
+        {n:'Iraq',lat:33.3,lon:44.4},
+        {n:'Egypt',lat:30.0,lon:31.2},
+        {n:'South Africa',lat:-33.9,lon:18.4},
+        {n:'Nigeria',lat:9.1,lon:7.5},
+        {n:'Kenya',lat:-1.3,lon:36.8},
+        {n:'Morocco',lat:33.6,lon:-7.6},
+        {n:'Ethiopia',lat:9.0,lon:38.7},
+        {n:'Algeria',lat:36.8,lon:3.1},
+        {n:'Ghana',lat:5.6,lon:-0.2},
+        {n:'China',lat:39.9,lon:116.4},
+        {n:'Shanghai',lat:31.2,lon:121.5},
+        {n:'Shenzhen',lat:22.5,lon:114.1},
+        {n:'Japan',lat:35.7,lon:139.7},
+        {n:'South Korea',lat:37.6,lon:127.0},
+        {n:'Taiwan',lat:25.0,lon:121.5},
+        {n:'Hong Kong',lat:22.3,lon:114.2},
+        {n:'North Korea',lat:39.0,lon:125.8},
+        {n:'India',lat:28.6,lon:77.2},
+        {n:'Mumbai',lat:19.1,lon:72.9},
+        {n:'Bangalore',lat:13.0,lon:77.6},
+        {n:'Pakistan',lat:33.7,lon:73.0},
+        {n:'Singapore',lat:1.4,lon:103.8},
+        {n:'Thailand',lat:13.8,lon:100.5},
+        {n:'Vietnam',lat:21.0,lon:105.8},
+        {n:'Indonesia',lat:-6.2,lon:106.8},
+        {n:'Malaysia',lat:3.1,lon:101.7},
+        {n:'Philippines',lat:14.6,lon:121.0},
+        {n:'Australia',lat:-33.9,lon:151.2},
+        {n:'Melbourne',lat:-37.8,lon:145.0},
+        {n:'Perth',lat:-31.9,lon:115.9},
+        {n:'New Zealand',lat:-41.3,lon:174.8}
+    ];
+
+    var canvas, ctx, mapW, mapH;
+    var arcs = [];
+    var queue = [];
+    var allAttacks = [];
+    var paused = false;
+    var animFrame, spawnTimer, refreshTimer;
+    var dataLoaded = false;
+
+    document.addEventListener('DOMContentLoaded', init);
+
+    function init() {
+        canvas = document.getElementById('attackMapCanvas');
+        ctx = canvas.getContext('2d');
+        resize();
+        window.addEventListener('resize', resize);
+        fetchData();
+        startAnim();
+        spawnTimer = setInterval(spawnNext, SPAWN_MS);
+        refreshTimer = setInterval(fetchData, REFRESH_MS);
+        updateClock();
+        setInterval(updateClock, 1000);
+    }
+
+    function resize() {
+        var wrap = document.querySelector('.attack-map-wrapper');
+        var dpr = window.devicePixelRatio || 1;
+        mapW = wrap.clientWidth;
+        mapH = wrap.clientHeight;
+        canvas.width = mapW * dpr;
+        canvas.height = mapH * dpr;
+        canvas.style.width = mapW + 'px';
+        canvas.style.height = mapH + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    var PAD = 30;
+    function toXY(lat, lon) {
+        return {
+            x: PAD + ((lon + 180) / 360) * (mapW - 2 * PAD),
+            y: PAD + ((90 - lat) / 180) * (mapH - 2 * PAD)
+        };
+    }
+
+    function bezPt(p0, cp, p1, t) {
+        var m = 1 - t;
+        return {
+            x: m*m*p0.x + 2*m*t*cp.x + t*t*p1.x,
+            y: m*m*p0.y + 2*m*t*cp.y + t*t*p1.y
+        };
+    }
+
+    function ctrlPt(s, t) {
+        var mx = (s.x + t.x) / 2;
+        var my = (s.y + t.y) / 2;
+        var dx = t.x - s.x, dy = t.y - s.y;
+        var d = Math.sqrt(dx*dx + dy*dy);
+        var off = Math.min(d * 0.35, mapH * 0.25);
+        return {x: mx, y: my - off};
+    }
+
+    function drawBg() {
+        ctx.fillStyle = '#060a14';
+        ctx.fillRect(0, 0, mapW, mapH);
+
+        ctx.strokeStyle = '#0c1420';
+        ctx.lineWidth = 0.5;
+        var lat, lon, p1, p2;
+        for (lat = -80; lat <= 80; lat += 20) {
+            p1 = toXY(lat, -180); p2 = toXY(lat, 180);
+            ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+        }
+        for (lon = -180; lon <= 180; lon += 30) {
+            p1 = toXY(90, lon); p2 = toXY(-90, lon);
+            ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+        }
+    }
+
+    function drawDots() {
+        var active = {};
+        arcs.forEach(function(a) {
+            active[a.srcName] = true;
+            active[a.tgtName] = true;
+        });
+
+        CITIES.forEach(function(c) {
+            var p = toXY(c.lat, c.lon);
+            var on = active[c.n];
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, on ? 2.5 : 1.2, 0, Math.PI * 2);
+            ctx.fillStyle = on ? '#00d4ff' : '#162a40';
+            if (on) {
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = '#00d4ff';
+            }
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+    }
+
+    function drawArc(a) {
+        var s = a.src, t = a.tgt, cp = a.cp;
+        var r = a.col.r, g = a.col.g, b = a.col.b;
+
+        if (a.prog < 1) {
+            ctx.beginPath();
+            ctx.moveTo(s.x, s.y);
+            ctx.quadraticCurveTo(cp.x, cp.y, t.x, t.y);
+            ctx.strokeStyle = 'rgba('+r+','+g+','+b+',0.07)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            var ts = Math.max(0, a.prog - TRAIL_LEN);
+            ctx.beginPath();
+            var first = true, step;
+            for (step = ts; step <= a.prog; step += 0.004) {
+                var pp = bezPt(s, cp, t, step);
+                if (first) { ctx.moveTo(pp.x, pp.y); first = false; }
+                else ctx.lineTo(pp.x, pp.y);
+            }
+            ctx.strokeStyle = 'rgba('+r+','+g+','+b+','+(0.3 + a.prog*0.35)+')';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            var cur = bezPt(s, cp, t, a.prog);
+            ctx.shadowBlur = 14;
+            ctx.shadowColor = 'rgba('+r+','+g+','+b+',1)';
+            ctx.beginPath();
+            ctx.arc(cur.x, cur.y, 2.5, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba('+r+','+g+','+b+',1)';
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            if (a.prog < 0.15) {
+                var pr = 4 + a.prog * 50;
+                var pa = 0.4 * (1 - a.prog / 0.15);
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, pr, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba('+r+','+g+','+b+','+pa+')';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+        }
+
+        if (a.impact && a.impR < IMPACT_MAX) {
+            var ia = 0.7 * (1 - a.impR / IMPACT_MAX);
+            ctx.beginPath();
+            ctx.arc(t.x, t.y, a.impR, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba('+r+','+g+','+b+','+ia+')';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            if (a.impR > 4) {
+                ctx.beginPath();
+                ctx.arc(t.x, t.y, a.impR * 0.5, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba('+r+','+g+','+b+','+(ia*0.4)+')';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+        }
+    }
+
+    function animate() {
+        if (!paused) {
+            drawBg();
+            drawDots();
+
+            for (var i = arcs.length - 1; i >= 0; i--) {
+                var a = arcs[i];
+                if (a.prog < 1) {
+                    a.prog += ARC_SPEED;
+                    if (a.prog >= 1) {
+                        a.prog = 1;
+                        a.impact = true;
+                        a.impR = 0;
+                    }
+                } else if (a.impact) {
+                    a.impR += 0.7;
+                    if (a.impR >= IMPACT_MAX) {
+                        a.fade -= 0.03;
+                        if (a.fade <= 0) {
+                            arcs.splice(i, 1);
+                            continue;
+                        }
+                    }
+                }
+                drawArc(a);
+            }
+        }
+        animFrame = requestAnimationFrame(animate);
+    }
+
+    function startAnim() { animate(); }
+
+    function spawnNext() {
+        if (paused || queue.length === 0 || arcs.length >= MAX_ARCS) return;
+
+        var atk = queue.shift();
+        var s = toXY(atk.source.lat, atk.source.lon);
+        var t = toXY(atk.target.lat, atk.target.lon);
+        var cp = ctrlPt(s, t);
+        var sev = atk.severity || 'medium';
+        var col = COLORS[sev] || COLORS.medium;
+
+        arcs.push({
+            src: s, tgt: t, cp: cp,
+            prog: 0, col: col, severity: sev,
+            impact: false, impR: 0, fade: 1,
+            srcName: atk.source.country,
+            tgtName: atk.target.country,
+            title: atk.title
+        });
+
+        addLog(atk);
+
+        if (queue.length < 5 && allAttacks.length > 0) {
+            var shuffled = allAttacks.slice().sort(function() { return Math.random() - 0.5; });
+            queue = queue.concat(shuffled.slice(0, 20));
+        }
+    }
+
+    function fetchData() {
+        fetch('/api/attack-data')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                allAttacks = data.attacks || [];
+
+                if (!dataLoaded && allAttacks.length > 0) {
+                    dataLoaded = true;
+                    var el = document.getElementById('map-loading');
+                    if (el) el.style.opacity = '0';
+                }
+
+                var shuffled = allAttacks.slice().sort(function() { return Math.random() - 0.5; });
+                queue = queue.concat(shuffled);
+
+                updateStats(data);
+            })
+            .catch(function(err) {
+                console.error('Attack data fetch error:', err);
+            });
+    }
+
+    function updateStats(data) {
+        var attacks = data.attacks || [];
+        var stats = data.stats || {};
+
+        document.getElementById('stat-total').textContent = data.total || 0;
+        document.getElementById('stat-critical').textContent = stats.critical_count || 0;
+
+        var highN = attacks.filter(function(a) { return a.severity === 'high'; }).length;
+        document.getElementById('stat-high').textContent = highN;
+
+        var countries = {};
+        attacks.forEach(function(a) {
+            countries[a.source.country] = 1;
+            countries[a.target.country] = 1;
+        });
+        document.getElementById('stat-countries').textContent = Object.keys(countries).length;
+
+        var aCounts = {};
+        attacks.forEach(function(a) {
+            aCounts[a.source.country] = (aCounts[a.source.country] || 0) + 1;
+        });
+        var sorted = Object.entries(aCounts).sort(function(a, b) { return b[1] - a[1]; }).slice(0, 5);
+        var maxC = sorted.length > 0 ? sorted[0][1] : 1;
+
+        var html = sorted.map(function(e) {
+            var pct = Math.round((e[1] / maxC) * 100);
+            return '<div class="attacker-row"><span>' + esc(e[0]) + '</span><span class="attacker-count">' + e[1] + '</span></div>' +
+                   '<div class="attacker-bar" style="width:' + pct + '%"></div>';
+        }).join('');
+        document.getElementById('top-attackers').innerHTML = html;
+    }
+
+    function addLog(atk) {
+        var log = document.getElementById('attack-log');
+        var entry = document.createElement('div');
+        entry.className = 'log-entry';
+        var titleText = atk.title || '';
+        if (titleText.length > 75) titleText = titleText.substring(0, 75) + '...';
+        entry.innerHTML =
+            '<div class="log-title">' +
+                '<span class="log-severity ' + esc(atk.severity) + '">' + esc(atk.severity) + '</span> ' +
+                esc(titleText) +
+            '</div>' +
+            '<div class="log-route">' +
+                '<span class="src">' + esc(atk.source.country) + '</span>' +
+                ' <span class="arrow">→</span> ' +
+                '<span class="tgt">' + esc(atk.target.country) + '</span>' +
+            '</div>';
+        log.insertBefore(entry, log.firstChild);
+        while (log.children.length > 30) log.removeChild(log.lastChild);
+    }
+
+    function updateClock() {
+        var now = new Date();
+        var pad = function(n) { return n < 10 ? '0' + n : n; };
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        document.getElementById('map-time').textContent =
+            now.getFullYear() + ' ' + months[now.getMonth()] + ' ' + pad(now.getDate()) + ' ' +
+            pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+    }
+
+    function esc(s) {
+        var d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+    }
+
+    window.togglePause = function() {
+        paused = !paused;
+        document.getElementById('pause-icon').className = paused ? 'fas fa-play' : 'fas fa-pause';
+    };
+
+    window.addEventListener('beforeunload', function() {
+        cancelAnimationFrame(animFrame);
+        clearInterval(spawnTimer);
+        clearInterval(refreshTimer);
+    });
+})();
+</script>
+{% endblock %}

@@ -2,6 +2,48 @@
 
 All notable changes to the Cybersecurity News Dashboard will be documented in this file.
 
+## [2.5.0] - 2026-09-22
+
+### Added - Real-Time Cyber Attack Map
+
+#### Attack Map Visualization
+- **New Attack Map page** (`/attack-map`) with real-time animated threat visualization
+  - Dark-themed full-page canvas with equirectangular world map projection
+  - 85+ city dots forming a recognizable world map pattern
+  - Animated bezier arc attacks from source to destination countries
+  - Glowing particle effects with trailing light paths
+  - Source pulse animation on attack origin
+  - Impact ripple effect at attack destination
+  - Auto-refresh every 30 seconds for continuous updates
+
+#### Threat Intelligence Data
+- **Attack data derived from actual news** in the database
+  - Analyzes hacking incidents and critical/high-priority news from last 30 days
+  - Keyword-based attacker detection (APT groups, country names, threat actors)
+  - Target detection from article region, title keywords, and content analysis
+  - Supports Russia, China, North Korea, Iran as detected attack origins
+  - Maps 35 countries with geographic coordinates
+
+#### Interface Panels
+- **Threat Overview** panel (top-left): total threats, critical count, high count, country count
+- **Top Attack Origins** panel (bottom-left): ranked attacker countries with bar charts
+- **Live Attack Feed** panel (right): scrolling log of attacks with severity badges
+- **Legend** (bottom-center): color-coded severity levels (Critical, High, Medium, Low)
+- **Pause/Resume** control button
+
+#### Navigation
+- New **Attack Map** link in main navigation bar between Priorities and Settings
+- Full-page layout hides footer for maximum map area
+
+#### Technical Details
+- API endpoint: `GET /api/attack-data` returns structured attack events with coordinates
+- Canvas rendering with `requestAnimationFrame` for smooth 60fps animation
+- Device pixel ratio handling for sharp rendering on HiDPI displays
+- Responsive design: panels collapse on mobile screens
+- Memory-efficient arc lifecycle management (max 35 concurrent arcs)
+
+---
+
 ## [2.4.1] - 2026-09-22
 
 ### Improved - Settings Consolidation & URL Display Fix

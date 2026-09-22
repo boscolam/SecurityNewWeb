@@ -1,6 +1,6 @@
-# UI Enhancements - Interactive Clickable Elements
+# UI Enhancements - Interactive Clickable Elements & Attack Map
 
-Version 2.4.0 introduces comprehensive clickable UI elements for faster navigation and better user experience.
+Version 2.4.0 introduced comprehensive clickable UI elements. Version 2.5.0 adds a real-time cyber attack map visualization.
 
 ---
 
@@ -485,6 +485,100 @@ If you have suggestions for additional clickable elements or UI improvements:
 
 ---
 
-**Version**: 2.4.0  
+---
+
+## 🗺️ Real-Time Cyber Attack Map (v2.5.0)
+
+### Overview
+
+Version 2.5.0 adds a full-page animated cyber attack map at `/attack-map`.
+
+### Features
+
+- **World Map**: 85+ city dots forming recognizable continent shapes on dark canvas
+- **Animated Arcs**: Bezier curve attacks from source to destination countries
+- **Particle Effects**: Glowing particles travel along arcs with trailing light
+- **Impact Ripples**: Expanding circles at attack destinations
+- **Source Pulses**: Pulsing rings at attack origins
+
+### Data Source
+
+Attack data is derived from actual news articles in the database:
+- Hacking incidents (`is_hacking_incident = 1`)
+- Critical and high priority news
+- Published within the last 30 days
+
+### Attacker Detection
+
+Keywords in article titles/summaries are matched to identify attack origins:
+- **Russia**: APT28, APT29, Fancy Bear, Cozy Bear, Sandworm, Turla
+- **China**: APT41, APT10, Hafnium, Winnti, Volt Typhoon, Salt Typhoon
+- **North Korea**: Lazarus, Kimsuky, APT38, Andariel
+- **Iran**: APT33, APT35, Charming Kitten, MuddyWater
+
+### Target Detection
+
+Target countries are determined by:
+1. Keywords in title/summary (e.g., "U.S.", "British", "Ukrainian")
+2. Article region field mapped to representative countries
+3. Fallback to region-based random selection
+
+### Interface Panels
+
+| Panel | Position | Content |
+|-------|----------|---------|
+| Threat Overview | Top-left | Total threats, critical/high counts, country count |
+| Top Attack Origins | Bottom-left | Ranked attacker countries with bar charts |
+| Live Attack Feed | Right side | Scrolling log with severity badges |
+| Legend | Bottom-center | Color-coded severity levels |
+| Controls | Bottom-right | Pause/Resume button |
+
+### Severity Colors
+
+| Level | Color | RGB |
+|-------|-------|-----|
+| Critical | Red | `rgb(255, 45, 85)` |
+| High | Orange | `rgb(255, 149, 0)` |
+| Medium | Yellow | `rgb(255, 204, 0)` |
+| Low | Green | `rgb(48, 209, 88)` |
+
+### API Endpoint
+
+`GET /api/attack-data` returns:
+```json
+{
+  "attacks": [
+    {
+      "id": 123,
+      "title": "Russian APT targets US infrastructure",
+      "source": {"country": "Russia", "lat": 55.8, "lon": 37.6},
+      "target": {"country": "United States", "lat": 39.8, "lon": -98.6},
+      "severity": "critical",
+      "type": "hacking",
+      "time": "2026-09-22T10:30:00",
+      "category": "web_news"
+    }
+  ],
+  "stats": {"total_incidents": 150, "critical_count": 10},
+  "total": 85
+}
+```
+
+### Technical Details
+
+- Canvas rendering with `requestAnimationFrame` (60fps)
+- Device pixel ratio handling for HiDPI displays
+- Equirectangular projection for lat/lon → canvas coordinates
+- Max 35 concurrent arcs for performance
+- Auto-refresh every 30 seconds
+- Responsive: panels collapse on mobile (< 900px)
+
+### Navigation
+
+Access via: **Dashboard** → **Attack Map** in the main navigation bar
+
+---
+
+**Version**: 2.5.0  
 **Updated**: 2026-09-22  
-**Feature**: Interactive Clickable UI
+**Features**: Interactive Clickable UI + Real-Time Cyber Attack Map

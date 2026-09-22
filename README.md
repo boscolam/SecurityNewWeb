@@ -2,7 +2,7 @@
 
 A comprehensive Flask-based web application that aggregates cybersecurity news from multiple sources including RSS feeds, vendor security blogs, dark web intelligence, CVE databases, and social media platforms.
 
-![Version](https://img.shields.io/badge/version-2.4.1-blue.svg)
+![Version](https://img.shields.io/badge/version-2.5.0-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
 ![Flask](https://img.shields.io/badge/Flask-3.0.0-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
@@ -37,6 +37,24 @@ A comprehensive Flask-based web application that aggregates cybersecurity news f
   - Manual approval workflow for discovered feeds
   - Prevents duplicate feeds
 
+- **Real-Time Cyber Attack Map** 🆕:
+  - Animated world map showing cyber attacks from source to destination countries
+  - Attack data derived from actual news (hacking incidents, CVEs, threat intelligence)
+  - Keyword-based detection of threat actors (APT groups, nation-state attackers)
+  - 35 country coordinates with 85+ city dots forming visual world map
+  - Live attack feed, threat overview stats, and top attacker rankings
+  - Severity-coded arcs: Critical (red), High (orange), Medium (yellow), Low (green)
+
+- **Clickable Badges & Filtering**:
+  - All badges/tags across Dashboard, News, and CVE pages are clickable
+  - One-click filtering by priority, category, region, source, vendor
+  - Hover animations with glow effects
+
+- **Comprehensive Logging System**:
+  - 5 separate log files (app, error, access, update, feed)
+  - Web-based log viewer with search, auto-refresh, and download
+  - RotatingFileHandler: 10MB max, 5 backups per log
+
 ### Technical Features
 - **Background Task Scheduling**: APScheduler for automated operations:
   - Configurable feed refresh intervals (default: 30 minutes)
@@ -65,21 +83,27 @@ SecurityNewWeb/
 ├── feed_manager.py         # RSS/feed fetching and parsing
 ├── priority_engine.py      # Priority scoring and analysis
 ├── auto_discovery.py       # Automatic feed discovery
+├── git_updater.py          # Git auto-update system
+├── logger_config.py        # Logging configuration (5 log files)
 ├── requirements.txt        # Python dependencies
 ├── setup.sh               # Quick setup script
+├── service.sh             # Systemd service management
 ├── wsgi.py                # WSGI entry point for Apache
 ├── INSTALL.md             # Detailed installation guide
 ├── static/
 │   ├── css/style.css      # Dashboard styling
 │   └── js/app.js          # Frontend JavaScript
 └── templates/
-    ├── base.html          # Base template
+    ├── base.html          # Base template with navigation
     ├── dashboard.html     # Main dashboard
-    ├── news.html          # News listing
+    ├── news.html          # News listing with filters
     ├── cve.html           # CVE-specific view
-    ├── sources.html       # Feed source management
+    ├── attack_map.html    # Real-time cyber attack map
+    ├── sources.html       # Feed source management (Settings tab)
     ├── priorities.html    # Priority rules management
-    └── settings.html      # Application settings
+    ├── settings.html      # Application settings (Settings tab)
+    ├── updates.html       # System updates (Settings tab)
+    └── logs.html          # System logs viewer (Settings tab)
 ```
 
 ## Installation
@@ -187,6 +211,19 @@ Manage at `/sources`:
 - `GET /api/discovered-feeds` - View discovered feeds
 - `POST /api/discovered-feeds/<id>/approve` - Approve feed
 - `POST /api/discovered-feeds/<id>/reject` - Reject feed
+
+### Attack Map
+- `GET /attack-map` - Real-time cyber attack map visualization
+- `GET /api/attack-data` - Attack events derived from news data (JSON)
+
+### System
+- `GET /settings` - Application settings (tabbed: Settings, Sources, Updates, Logs)
+- `GET /updates` - System updates page
+- `GET /logs` - System logs viewer
+- `GET /api/logs/list` - List all log files
+- `GET /api/logs/<name>` - Get log file content
+- `GET /api/logs/<name>/download` - Download a log file
+- `POST /api/logs/<name>/clear` - Clear a log file
 
 ### Analytics
 - `GET /api/stats` - News statistics
@@ -311,6 +348,8 @@ Credits to:
 - [UBUNTU_INSTALL.md](UBUNTU_INSTALL.md) - Ubuntu installation guide
 - [UPDATE_INSTRUCTIONS.md](UPDATE_INSTRUCTIONS.md) - Update guide (v1.0 → v2.2.0)
 - [AUTO_UPDATE_GUIDE.md](AUTO_UPDATE_GUIDE.md) - Auto-update documentation
+- [LOGGING_GUIDE.md](LOGGING_GUIDE.md) - Logging system guide
+- [UI_ENHANCEMENTS.md](UI_ENHANCEMENTS.md) - Clickable badges & attack map
 - [INSTALL.md](INSTALL.md) - Detailed Apache deployment
 
 **Common Issues**:
@@ -323,6 +362,13 @@ Credits to:
 - Check logs: `./service.sh logs` or `journalctl --user -u cybersec-news -f`
 
 ## Roadmap
+
+Completed:
+- [x] Real-time cyber attack map visualization
+- [x] Clickable badges for instant filtering
+- [x] Comprehensive logging system with web viewer
+- [x] Auto-update system with service restart
+- [x] Settings consolidation with tabbed navigation
 
 Future enhancements:
 - [ ] Email/Slack notifications for high-priority news

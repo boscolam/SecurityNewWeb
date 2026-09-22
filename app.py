@@ -18,7 +18,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from database import (
-    init_db, get_top_news, get_news, get_news_stats,
+    init_db, get_db, get_top_news, get_news, get_news_stats,
     get_sources, add_source, update_source, delete_source,
     get_settings, get_setting, update_setting,
     get_priority_rules, add_priority_rule, update_priority_rule, delete_priority_rule,
@@ -657,6 +657,173 @@ def api_logs_clear(log_name):
     except Exception as e:
         logger.error(f"Error clearing log file: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ============================================================
+# ROUTES - Cyber Attack Map
+# ============================================================
+
+@app.route('/attack-map')
+def attack_map_page():
+    """Real-time cyber attack map visualization."""
+    return render_template('attack_map.html')
+
+
+@app.route('/api/attack-data')
+def api_attack_data():
+    """Get cyber attack data derived from news for the attack map."""
+    import random
+
+    COUNTRY_COORDS = {
+        'United States': {'lat': 39.8, 'lon': -98.6},
+        'Russia': {'lat': 55.8, 'lon': 37.6},
+        'China': {'lat': 35.0, 'lon': 105.0},
+        'North Korea': {'lat': 40.0, 'lon': 127.0},
+        'Iran': {'lat': 35.7, 'lon': 51.4},
+        'United Kingdom': {'lat': 51.5, 'lon': -0.1},
+        'Germany': {'lat': 51.2, 'lon': 10.5},
+        'France': {'lat': 46.2, 'lon': 2.2},
+        'India': {'lat': 20.6, 'lon': 79.0},
+        'Brazil': {'lat': -14.2, 'lon': -51.9},
+        'Japan': {'lat': 36.2, 'lon': 138.3},
+        'South Korea': {'lat': 36.5, 'lon': 128.0},
+        'Australia': {'lat': -25.3, 'lon': 133.8},
+        'Canada': {'lat': 56.1, 'lon': -106.3},
+        'Ukraine': {'lat': 48.4, 'lon': 31.2},
+        'Israel': {'lat': 31.0, 'lon': 34.8},
+        'Turkey': {'lat': 39.9, 'lon': 32.9},
+        'Singapore': {'lat': 1.4, 'lon': 103.8},
+        'Netherlands': {'lat': 52.4, 'lon': 4.9},
+        'Sweden': {'lat': 59.3, 'lon': 18.1},
+        'Poland': {'lat': 52.2, 'lon': 21.0},
+        'Spain': {'lat': 40.4, 'lon': -3.7},
+        'Italy': {'lat': 41.9, 'lon': 12.5},
+        'Egypt': {'lat': 30.0, 'lon': 31.2},
+        'South Africa': {'lat': -33.9, 'lon': 18.4},
+        'Mexico': {'lat': 19.4, 'lon': -99.1},
+        'Indonesia': {'lat': -6.2, 'lon': 106.8},
+        'Vietnam': {'lat': 21.0, 'lon': 105.8},
+        'Thailand': {'lat': 13.8, 'lon': 100.5},
+        'Saudi Arabia': {'lat': 24.7, 'lon': 46.7},
+        'UAE': {'lat': 25.2, 'lon': 55.3},
+        'Pakistan': {'lat': 30.4, 'lon': 69.3},
+        'Nigeria': {'lat': 9.1, 'lon': 7.5},
+        'Kenya': {'lat': -1.3, 'lon': 36.8},
+        'Taiwan': {'lat': 23.7, 'lon': 121.0},
+    }
+
+    ATTACKER_PATTERNS = {
+        'Russia': ['russia', 'russian', 'apt28', 'apt29', 'fancy bear', 'cozy bear',
+                   'sandworm', 'turla', 'nobelium', 'midnight blizzard'],
+        'China': ['china', 'chinese', 'apt41', 'apt10', 'apt40', 'hafnium',
+                  'winnti', 'apt31', 'panda', 'volt typhoon', 'salt typhoon'],
+        'North Korea': ['north korea', 'dprk', 'lazarus', 'kimsuky', 'apt38', 'andariel'],
+        'Iran': ['iran', 'iranian', 'apt33', 'apt35', 'charming kitten',
+                 'muddywater', 'phosphorus', 'peach sandstorm'],
+    }
+
+    TARGET_PATTERNS = {
+        'United States': ['us ', 'u.s.', 'american', 'united states', 'fbi',
+                          'cisa', 'pentagon', 'nsa', 'federal'],
+        'United Kingdom': ['uk ', 'u.k.', 'british', 'britain', 'ncsc', 'england'],
+        'Ukraine': ['ukrain', 'kiev', 'kyiv'],
+        'Germany': ['german', 'germany'],
+        'France': ['french', 'france'],
+        'Japan': ['japan', 'jpcert'],
+        'Australia': ['austral', 'auscert'],
+        'India': ['india', 'indian'],
+        'Israel': ['israel'],
+        'South Korea': ['south korea', 'korean'],
+        'Taiwan': ['taiwan', 'taiwanese'],
+    }
+
+    REGION_TARGETS = {
+        'global': ['United States', 'United Kingdom', 'Germany', 'Japan', 'Australia'],
+        'north_america': ['United States', 'Canada'],
+        'europe': ['United Kingdom', 'Germany', 'France', 'Netherlands', 'Poland'],
+        'asia_pacific': ['Japan', 'South Korea', 'Australia', 'Singapore', 'India'],
+        'china': ['China', 'Taiwan'],
+        'middle_east': ['Israel', 'Saudi Arabia', 'UAE', 'Turkey'],
+        'africa': ['South Africa', 'Nigeria', 'Kenya', 'Egypt'],
+        'south_america': ['Brazil', 'Mexico'],
+    }
+
+    DEFAULT_ATTACKERS = ['Russia', 'China', 'North Korea', 'Iran', 'Russia', 'China']
+
+    conn = get_db()
+    try:
+        rows = conn.execute('''
+            SELECT n.id, n.title, n.summary, n.region, n.priority_label,
+                   n.is_hacking_incident, n.has_cve, n.cve_vendors,
+                   n.published_date, n.category
+            FROM news n
+            WHERE (n.is_hacking_incident = 1 OR n.priority_label IN ('critical', 'high'))
+            AND n.published_date >= datetime('now', '-30 days')
+            ORDER BY n.published_date DESC
+            LIMIT 200
+        ''').fetchall()
+
+        stats = {
+            'total_incidents': conn.execute(
+                "SELECT COUNT(*) FROM news WHERE is_hacking_incident = 1"
+            ).fetchone()[0],
+            'critical_count': conn.execute(
+                "SELECT COUNT(*) FROM news WHERE priority_label = 'critical'"
+            ).fetchone()[0],
+        }
+    finally:
+        conn.close()
+
+    attacks = []
+    for row in rows:
+        rd = dict(row)
+        text = (rd.get('title', '') + ' ' + (rd.get('summary', '') or '')).lower()
+
+        attacker = None
+        for country, kws in ATTACKER_PATTERNS.items():
+            if any(kw in text for kw in kws):
+                attacker = country
+                break
+        if not attacker:
+            attacker = random.choice(DEFAULT_ATTACKERS)
+
+        target = None
+        for country, kws in TARGET_PATTERNS.items():
+            if any(kw in text for kw in kws):
+                target = country
+                break
+        if not target:
+            region = rd.get('region', 'global')
+            targets = REGION_TARGETS.get(region, REGION_TARGETS['global'])
+            target = random.choice(targets)
+
+        if attacker == target:
+            alts = [c for c in REGION_TARGETS.get(rd.get('region', 'global'),
+                    ['United States']) if c != attacker]
+            target = random.choice(alts) if alts else 'United States'
+
+        if attacker in COUNTRY_COORDS and target in COUNTRY_COORDS:
+            attacks.append({
+                'id': rd['id'],
+                'title': rd['title'],
+                'source': {
+                    'country': attacker,
+                    'lat': COUNTRY_COORDS[attacker]['lat'],
+                    'lon': COUNTRY_COORDS[attacker]['lon'],
+                },
+                'target': {
+                    'country': target,
+                    'lat': COUNTRY_COORDS[target]['lat'],
+                    'lon': COUNTRY_COORDS[target]['lon'],
+                },
+                'severity': rd.get('priority_label', 'medium'),
+                'type': 'hacking' if rd.get('is_hacking_incident') else (
+                    'cve' if rd.get('has_cve') else 'threat'),
+                'time': rd.get('published_date', ''),
+                'category': rd.get('category', 'web_news'),
+            })
+
+    return jsonify({'attacks': attacks, 'stats': stats, 'total': len(attacks)})
 
 
 # ============================================================
