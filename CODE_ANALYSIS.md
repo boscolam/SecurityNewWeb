@@ -36,6 +36,7 @@ This is a well-structured Flask web application designed for cybersecurity profe
 **Contents**:
 - 90+ predefined RSS feed sources
 - Region definitions (9 regions: Global, North America, Europe, Asia Pacific, China, Hong Kong, Middle East, Africa, South America)
+- 8 AI/ML threat topic definitions with keyword lists for topic clustering
 - News categories (6 types: web_news, blog, vendor_research, darkweb, cve, government)
 - Feed types (4 types: rss, web_scrape, api, social_media)
 - Priority rules configuration
@@ -176,11 +177,12 @@ Base score: 50
 
 ### 7. **Frontend** - Web Interface
 
-**Templates** (10 HTML files):
+**Templates** (11 HTML files):
 - `base.html`: Base layout with navigation
 - `dashboard.html`: Main dashboard with stats
 - `news.html`: News listing with filters
 - `cve.html`: CVE-specific view
+- `ai_insights.html`: AI/ML suggested news with topic clustering and trends
 - `attack_map.html`: Real-time cyber attack map with canvas animation
 - `sources.html`: Feed source management (Settings tab)
 - `priorities.html`: Priority rules configuration

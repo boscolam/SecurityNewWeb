@@ -125,6 +125,7 @@ curl -s http://localhost:5000/ | grep -o 'href="/[^"]*"' | sort -u
 ```
 
 Should include:
+- `/ai-insights` - AI/ML suggested news with topic clustering and trends (v2.8.0+)
 - `/attack-map` - Cyber attack map with clickable detail overlay and configurable refresh (v2.5.0+)
 - `/logs` - Logs viewer (v2.3.0+, under Settings tabs)
 - `/updates` - Auto-update (v2.1.0+, under Settings tabs)

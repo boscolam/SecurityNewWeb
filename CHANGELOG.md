@@ -2,6 +2,32 @@
 
 All notable changes to the Cybersecurity News Dashboard will be documented in this file.
 
+## [2.8.0] - 2026-09-23
+
+### Added - AI/ML Insights Page, Auto-Discovered Feed Fix & All v2.7.0 Features
+
+#### AI / ML Insights Page (`/ai-insights`)
+- **New page**: keyword-based topic clustering and trend detection for cybersecurity news
+- **8 threat topics**: Ransomware, APT/Espionage, Zero-Day, Supply Chain, Data Breach, Critical Infrastructure, Phishing/Social Engineering, Cloud Security
+- **Trending keywords**: compares recent vs older article frequency to detect rising threats
+- **Relevance scoring**: articles ranked per topic by keyword hit count + priority score
+- **Top sources**: breakdown of most active sources per topic cluster
+- **Configurable analysis window**: 1 day, 3 days, 7 days, 14 days, or 30 days
+- **Expandable topic panels** with first panel auto-expanded on load
+- Navigation: added "AI Insights" with brain icon in main nav bar
+
+#### Auto-Discovered Feeds Bug Fix
+- **Fixed**: discovered feeds with empty or missing names now get a fallback name from the URL domain
+- Prevents blank entries in the Auto-Discovered Feeds list under Sources
+
+#### Includes All v2.7.0 Features
+- Top 20 Security Breaches (hacking incidents only, CVE exclusion filter)
+- Hong Kong region added to config, news filters, and attack map
+- Configurable refresh interval (10s–5m) in Live Attack Feed panel
+- All prior bug fixes verified intact
+
+---
+
 ## [2.7.0] - 2026-09-22
 
 ### Added - Security Breaches Focus, Hong Kong Region & Attack Map Refresh Control

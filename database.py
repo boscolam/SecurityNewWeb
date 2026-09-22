@@ -568,13 +568,17 @@ def get_discovered_feeds(approved_only=False):
 
 
 def add_discovered_feed(feed):
-    """Add a newly discovered feed."""
+    """Add a newly discovered feed. Ensures name is never empty."""
+    from urllib.parse import urlparse
+    name = (feed.get('name') or '').strip()
+    if not name:
+        name = urlparse(feed.get('url', '')).netloc or 'Unknown Feed'
     conn = get_db()
     try:
         conn.execute('''
             INSERT OR IGNORE INTO discovered_feeds (name, url, category, region, discovered_from)
             VALUES (?, ?, ?, ?, ?)
-        ''', (feed['name'], feed['url'], feed.get('category', 'web_news'),
+        ''', (name, feed['url'], feed.get('category', 'web_news'),
               feed.get('region', 'global'), feed.get('discovered_from', '')))
         conn.commit()
         return True
@@ -604,6 +608,166 @@ def reject_discovered_feed(feed_id):
     conn.execute("DELETE FROM discovered_feeds WHERE id = ?", (feed_id,))
     conn.commit()
     conn.close()
+
+
+# ============================================================
+# AI/ML SUGGESTED NEWS & ANALYSIS
+# ============================================================
+
+THREAT_TOPICS = {
+    'ransomware': {
+        'keywords': ['ransomware', 'ransom', 'lockbit', 'blackcat', 'alphv', 'clop',
+                     'royal ransom', 'akira ransom', 'rhysida', 'encrypt', 'decryptor'],
+        'icon': 'fa-lock',
+        'color': '#ff2d55',
+    },
+    'apt_espionage': {
+        'keywords': ['apt', 'nation-state', 'espionage', 'state-sponsored',
+                     'cyber espionage', 'advanced persistent', 'threat actor',
+                     'fancy bear', 'cozy bear', 'lazarus', 'kimsuky', 'volt typhoon',
+                     'salt typhoon', 'sandworm', 'turla', 'muddywater'],
+        'icon': 'fa-user-secret',
+        'color': '#af52de',
+    },
+    'zero_day': {
+        'keywords': ['zero-day', 'zero day', '0-day', '0day',
+                     'actively exploited', 'in-the-wild', 'wild exploit'],
+        'icon': 'fa-bomb',
+        'color': '#ff9500',
+    },
+    'supply_chain': {
+        'keywords': ['supply chain', 'supply-chain', 'solarwinds', 'dependency confusion',
+                     'package compromise', 'npm malicious', 'pypi malicious',
+                     'trojanized', 'backdoor package', 'open source compromise'],
+        'icon': 'fa-link',
+        'color': '#ff3b30',
+    },
+    'data_breach': {
+        'keywords': ['data breach', 'data leak', 'leaked data', 'exposed data',
+                     'records exposed', 'personal data', 'credential leak',
+                     'database exposed', 'millions affected', 'customer data'],
+        'icon': 'fa-database',
+        'color': '#5856d6',
+    },
+    'critical_infrastructure': {
+        'keywords': ['critical infrastructure', 'ics', 'scada', 'ot security',
+                     'industrial control', 'power grid', 'water treatment',
+                     'healthcare attack', 'hospital', 'energy sector'],
+        'icon': 'fa-industry',
+        'color': '#34c759',
+    },
+    'phishing_social': {
+        'keywords': ['phishing', 'spear-phishing', 'social engineering',
+                     'business email compromise', 'bec', 'credential harvest',
+                     'smishing', 'vishing', 'impersonation'],
+        'icon': 'fa-envelope-open',
+        'color': '#007aff',
+    },
+    'cloud_security': {
+        'keywords': ['cloud security', 'aws breach', 'azure vulnerability',
+                     'misconfigured cloud', 's3 bucket', 'cloud misconfiguration',
+                     'container escape', 'kubernetes vuln', 'saas attack'],
+        'icon': 'fa-cloud',
+        'color': '#5ac8fa',
+    },
+}
+
+
+def get_ai_suggested_news(days=7, limit=50):
+    """Analyze recent news using keyword-based ML-style topic clustering.
+    Returns topic-grouped articles with relevance scores and trend data."""
+    conn = get_db()
+    rows = conn.execute('''
+        SELECT n.*, s.name as source_name
+        FROM news n
+        LEFT JOIN sources s ON n.source_id = s.id
+        WHERE n.published_date >= datetime('now', ? || ' days')
+        ORDER BY n.published_date DESC
+        LIMIT ?
+    ''', (str(-days), limit * 3)).fetchall()
+    conn.close()
+
+    articles = [dict(row) for row in rows]
+
+    topics = {}
+    for topic_key, topic_info in THREAT_TOPICS.items():
+        matched = []
+        for art in articles:
+            text = ((art.get('title') or '') + ' ' + (art.get('summary') or '')).lower()
+            hits = sum(1 for kw in topic_info['keywords'] if kw in text)
+            if hits > 0:
+                art_copy = dict(art)
+                art_copy['relevance_score'] = hits * 10 + art.get('priority_score', 50)
+                matched.append(art_copy)
+
+        matched.sort(key=lambda x: x['relevance_score'], reverse=True)
+        if matched:
+            topics[topic_key] = {
+                'name': topic_key.replace('_', ' ').title(),
+                'icon': topic_info['icon'],
+                'color': topic_info['color'],
+                'count': len(matched),
+                'articles': matched[:limit // len(THREAT_TOPICS) + 3],
+                'top_sources': _top_sources(matched),
+            }
+
+    trending = _detect_trends(articles)
+
+    return {
+        'topics': topics,
+        'total_analyzed': len(articles),
+        'trending': trending,
+        'period_days': days,
+    }
+
+
+def _top_sources(articles):
+    """Get the most frequent sources for a set of articles."""
+    counts = {}
+    for a in articles:
+        src = a.get('source_name') or 'Unknown'
+        counts[src] = counts.get(src, 0) + 1
+    return sorted(counts.items(), key=lambda x: x[1], reverse=True)[:5]
+
+
+def _detect_trends(articles):
+    """Detect trending keywords by comparing recent vs older article frequency."""
+    from collections import Counter
+    if len(articles) < 4:
+        return []
+
+    mid = len(articles) // 2
+    recent = articles[:mid]
+    older = articles[mid:]
+
+    def extract_terms(arts):
+        terms = Counter()
+        for a in arts:
+            text = ((a.get('title') or '') + ' ' + (a.get('summary') or '')).lower()
+            for topic_key, info in THREAT_TOPICS.items():
+                for kw in info['keywords']:
+                    if kw in text:
+                        terms[kw] += 1
+        return terms
+
+    recent_terms = extract_terms(recent)
+    older_terms = extract_terms(older)
+
+    trends = []
+    for term, count in recent_terms.most_common(20):
+        old_count = older_terms.get(term, 0)
+        if count > old_count:
+            change = ((count - old_count) / max(old_count, 1)) * 100
+            trends.append({
+                'keyword': term,
+                'recent_count': count,
+                'previous_count': old_count,
+                'change_pct': round(change),
+                'direction': 'up',
+            })
+
+    trends.sort(key=lambda x: x['change_pct'], reverse=True)
+    return trends[:10]
 
 
 # ============================================================

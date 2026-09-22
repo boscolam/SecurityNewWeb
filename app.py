@@ -24,7 +24,7 @@ from database import (
     get_settings, get_setting, update_setting,
     get_priority_rules, add_priority_rule, update_priority_rule, delete_priority_rule,
     get_discovered_feeds, approve_discovered_feed, reject_discovered_feed,
-    get_analysis_logs, cleanup_old_news
+    get_analysis_logs, cleanup_old_news, get_ai_suggested_news
 )
 from feed_manager import fetch_all_feeds, fetch_single_feed
 from priority_engine import run_daily_priority_analysis
@@ -697,6 +697,25 @@ def api_logs_clear(log_name):
     except Exception as e:
         logger.error(f"Error clearing log file: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ============================================================
+# ROUTES - AI/ML Suggested News
+# ============================================================
+
+@app.route('/ai-insights')
+def ai_insights_page():
+    """AI/ML suggested cybersecurity news feed with topic clustering and trends."""
+    days = request.args.get('days', '7', type=str)
+    if days not in ('1', '3', '7', '14', '30'):
+        days = '7'
+    data = get_ai_suggested_news(days=int(days))
+    return render_template('ai_insights.html',
+                           data=data,
+                           days=days,
+                           regions=REGIONS,
+                           categories=NEWS_CATEGORIES,
+                           now=datetime.utcnow())
 
 
 # ============================================================

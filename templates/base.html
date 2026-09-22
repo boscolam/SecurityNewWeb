@@ -61,6 +61,12 @@
                     <i class="fas fa-sort-amount-up"></i> Priorities
                 </a></li>
 
+                <!-- AI Insights: ML-suggested cybersecurity news and trends -->
+                <li><a href="/ai-insights"
+                       class="{% if request.endpoint == 'ai_insights_page' %}active{% endif %}">
+                    <i class="fas fa-brain"></i> AI Insights
+                </a></li>
+
                 <!-- Attack Map: real-time cyber threat visualization -->
                 <li><a href="/attack-map"
                        class="{% if request.endpoint == 'attack_map_page' %}active{% endif %}">

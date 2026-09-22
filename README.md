@@ -2,7 +2,7 @@
 
 A comprehensive Flask-based web application that aggregates cybersecurity news from multiple sources including RSS feeds, vendor security blogs, dark web intelligence, CVE databases, and social media platforms.
 
-![Version](https://img.shields.io/badge/version-2.7.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.8.0-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
 ![Flask](https://img.shields.io/badge/Flask-3.0.0-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
@@ -51,6 +51,13 @@ A comprehensive Flask-based web application that aggregates cybersecurity news f
   - News page: sort by priority, time, category, or source
   - CVE Monitor: sort by time, priority, category, or source
   - Priority Rules: sort by score, keyword, level, or hit count; search/filter rules
+
+- **AI / ML Insights Page** 🆕:
+  - Keyword-based topic clustering: Ransomware, APT/Espionage, Zero-Day, Supply Chain, Data Breach, Critical Infrastructure, Phishing, Cloud Security
+  - Trending keyword detection comparing recent vs older article frequency
+  - Relevance scoring per article within each topic
+  - Configurable analysis window (1 day to 30 days)
+  - Top sources breakdown per topic
 
 - **Clickable Badges & Filtering**:
   - All badges/tags across Dashboard, News, and CVE pages are clickable
@@ -108,6 +115,7 @@ SecurityNewWeb/
     ├── dashboard.html     # Main dashboard
     ├── news.html          # News listing with filters
     ├── cve.html           # CVE-specific view
+    ├── ai_insights.html   # AI/ML suggested news and trends
     ├── attack_map.html    # Real-time cyber attack map
     ├── sources.html       # Feed source management (Settings tab)
     ├── priorities.html    # Priority rules management
@@ -221,6 +229,10 @@ Manage at `/sources`:
 - `GET /api/discovered-feeds` - View discovered feeds
 - `POST /api/discovered-feeds/<id>/approve` - Approve feed
 - `POST /api/discovered-feeds/<id>/reject` - Reject feed
+
+### AI / ML Insights
+- `GET /ai-insights` - AI/ML suggested news with topic clustering and trends
+- `GET /ai-insights?days=N` - Configurable analysis window (1, 3, 7, 14, 30 days)
 
 ### Attack Map
 - `GET /attack-map` - Real-time cyber attack map visualization
