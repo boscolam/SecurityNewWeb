@@ -2,6 +2,16 @@
 
 All notable changes to the Cybersecurity News Dashboard will be documented in this file.
 
+## [2.8.3] - 2026-09-23
+
+### Changed — Navigation Order
+
+- **Moved AI Insights to first position** in the navigation bar (before Dashboard)
+- Nav order: AI Insights | Dashboard | News | CVE Monitor | Priorities | Attack Map | Settings
+- All prior bug fixes verified intact
+
+---
+
 ## [2.8.2] - 2026-09-23
 
 ### Fixed — AI Insights Page Visibility on Dark Theme

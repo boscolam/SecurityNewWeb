@@ -37,7 +37,13 @@
 
             <!-- Main navigation links - each links to a major page -->
             <ul class="nav-links" id="navLinks">
-                <!-- Dashboard: main overview with top 10 news and stats -->
+                <!-- AI Insights: ML-suggested cybersecurity news and trends -->
+                <li><a href="/ai-insights"
+                       class="{% if request.endpoint == 'ai_insights_page' %}active{% endif %}">
+                    <i class="fas fa-brain"></i> AI Insights
+                </a></li>
+
+                <!-- Dashboard: main overview with top 20 security breaches and stats -->
                 <li><a href="{{ url_for('dashboard') }}"
                        class="{% if request.endpoint == 'dashboard' %}active{% endif %}">
                     <i class="fas fa-tachometer-alt"></i> Dashboard
@@ -59,12 +65,6 @@
                 <li><a href="{{ url_for('priorities_page') }}"
                        class="{% if request.endpoint == 'priorities_page' %}active{% endif %}">
                     <i class="fas fa-sort-amount-up"></i> Priorities
-                </a></li>
-
-                <!-- AI Insights: ML-suggested cybersecurity news and trends -->
-                <li><a href="/ai-insights"
-                       class="{% if request.endpoint == 'ai_insights_page' %}active{% endif %}">
-                    <i class="fas fa-brain"></i> AI Insights
                 </a></li>
 
                 <!-- Attack Map: real-time cyber threat visualization -->
