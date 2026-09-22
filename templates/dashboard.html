@@ -92,24 +92,26 @@
     </div>
 
     <!-- ============================================================
-         TOP 10 NEWS SUMMARY
-         The most important news items, sorted by:
-         1. Hacking incidents first (is_hacking_incident DESC)
-         2. Then by priority score (priority_score DESC)
-         3. Then by publication date (published_date DESC)
+         TOP 20 SECURITY BREACHES
+         Only hacking incidents (is_hacking_incident = 1)
+         Optional CVE exclusion filter (exclude_cve)
          ============================================================ -->
     <div class="section">
         <div class="section-header">
-            <h2><i class="fas fa-fire"></i> Top 20 Security News</h2>
+            <h2><i class="fas fa-fire"></i> Top 20 Security Breaches</h2>
             <div class="header-actions">
                 <div class="sort-control" style="display:inline-flex;align-items:center;gap:6px;margin-right:12px;">
                     <label style="font-size:12px;color:#6c757d;white-space:nowrap;">Sort by:</label>
-                    <select onchange="window.location.href='/?sort='+this.value" style="padding:4px 8px;border-radius:4px;border:1px solid #dee2e6;font-size:12px;background:#fff;">
+                    <select onchange="updateDashboard()" id="sortSelect" style="padding:4px 8px;border-radius:4px;border:1px solid #dee2e6;font-size:12px;background:#fff;">
                         <option value="time" {% if sort == 'time' %}selected{% endif %}>Latest First</option>
                         <option value="priority" {% if sort == 'priority' %}selected{% endif %}>Priority</option>
                         <option value="category" {% if sort == 'category' %}selected{% endif %}>Category</option>
                     </select>
                 </div>
+                <label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#6c757d;margin-right:12px;cursor:pointer;" title="Hide articles that are primarily about CVE disclosures">
+                    <input type="checkbox" id="excludeCveCheck" onchange="updateDashboard()" {% if exclude_cve %}checked{% endif %}>
+                    Exclude CVE
+                </label>
                 <a href="{{ url_for('news_list') }}" class="btn btn-sm">View All News &rarr;</a>
             </div>
         </div>
@@ -257,8 +259,12 @@
 
 {% block extra_scripts %}
 <script>
-    /* Function to manually trigger RSS feed refresh via the API.
-       Called when user clicks "Refresh Feeds" button on dashboard. */
+    function updateDashboard() {
+        var sort = document.getElementById('sortSelect').value;
+        var excl = document.getElementById('excludeCveCheck').checked ? '1' : '0';
+        window.location.href = '/?sort=' + sort + '&exclude_cve=' + excl;
+    }
+
     function refreshFeeds() {
         const btn = document.getElementById('refreshBtn');
         btn.disabled = true;

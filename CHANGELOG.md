@@ -2,6 +2,36 @@
 
 All notable changes to the Cybersecurity News Dashboard will be documented in this file.
 
+## [2.7.0] - 2026-09-22
+
+### Added - Security Breaches Focus, Hong Kong Region & Attack Map Refresh Control
+
+#### Top 20 Security Breaches (formerly "Top 20 Security News")
+- **Renamed to "Top 20 Security Breaches"** — now shows only hacking incidents (`is_hacking_incident = 1`)
+- Removed `critical`/`high` priority fallback — strictly security breach news only
+- **CVE exclusion filter** — checkbox to hide articles that are primarily CVE disclosures
+- Filter state preserved in URL (`?exclude_cve=1`) for bookmarking
+
+#### Hong Kong Region
+- **Added "Hong Kong" as a new region** in the REGIONS configuration
+- Hong Kong appears in the Security News region dropdown filter
+- Attack map: added Hong Kong coordinates (22.3°N, 114.2°E) to country database
+- Attack map: Hong Kong target pattern detection for keyword matching
+- Attack map: `hong_kong` region mapping targets Hong Kong and China
+
+#### Attack Map — Refresh Time Setting
+- **Configurable refresh interval** in the Live Attack Feed panel header
+- Dropdown selector with options: 10s, 20s, 30s (default), 1m, 2m, 5m
+- Changes take effect immediately — no page reload needed
+- Timer resets when interval changes for consistent refresh cycles
+
+#### Bug Fixes & Code Quality
+- Verified all prior bug fixes remain intact (BuildError prevention, log propagation, sort validation)
+- All Python files pass `py_compile` syntax check
+- No regressions in existing features
+
+---
+
 ## [2.6.0] - 2026-09-22
 
 ### Added - Sorting, Search, Attack Map Detail & Logging Improvements

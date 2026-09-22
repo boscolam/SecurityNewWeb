@@ -125,7 +125,7 @@ curl -s http://localhost:5000/ | grep -o 'href="/[^"]*"' | sort -u
 ```
 
 Should include:
-- `/attack-map` - Cyber attack map with clickable detail overlay (v2.5.0+)
+- `/attack-map` - Cyber attack map with clickable detail overlay and configurable refresh (v2.5.0+)
 - `/logs` - Logs viewer (v2.3.0+, under Settings tabs)
 - `/updates` - Auto-update (v2.1.0+, under Settings tabs)
 - `/sources` - Feed sources (under Settings tabs)

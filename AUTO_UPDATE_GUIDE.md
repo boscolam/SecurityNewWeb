@@ -75,6 +75,7 @@ The auto-update system is **version-agnostic** and works across all versions:
 ✅ **v2.2+**: Full systemd service support  
 ✅ **v2.5+**: Attack map, clickable badges, logging system  
 ✅ **v2.6+**: Sorting on all pages, search on priorities, attack map detail overlay, improved logging  
+✅ **v2.7+**: Security breaches focus, CVE exclusion filter, Hong Kong region, configurable attack map refresh  
 
 **Key Points**:
 - Updates from any version to the latest

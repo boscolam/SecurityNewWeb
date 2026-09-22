@@ -291,23 +291,27 @@ def get_news(filters=None, page=1, per_page=25, sort='priority'):
     return [dict(row) for row in rows], total
 
 
-def get_top_news(limit=20, sort='time'):
-    """Get top N security-relevant news (hacking incidents + critical/high priority).
-    Default sort by time to show most recent security events first."""
+def get_top_news(limit=20, sort='time', exclude_cve=False):
+    """Get top N security breach news (hacking incidents only).
+    Default sort by time to show most recent security breaches first.
+    exclude_cve: if True, exclude articles that are primarily CVE-related."""
     SORT_MAP = {
         'time': 'n.published_date DESC',
-        'priority': 'n.is_hacking_incident DESC, n.priority_score DESC, n.published_date DESC',
+        'priority': 'n.priority_score DESC, n.published_date DESC',
         'category': 'n.category, n.published_date DESC',
     }
     order = SORT_MAP.get(sort, SORT_MAP['time'])
+
+    where = 'WHERE n.is_hacking_incident = 1'
+    if exclude_cve:
+        where += ' AND n.has_cve = 0'
 
     conn = get_db()
     rows = conn.execute(f'''
         SELECT n.*, s.name as source_name
         FROM news n
         LEFT JOIN sources s ON n.source_id = s.id
-        WHERE n.is_hacking_incident = 1
-           OR n.priority_label IN ('critical', 'high')
+        {where}
         ORDER BY {order}
         LIMIT ?
     ''', (limit,)).fetchall()

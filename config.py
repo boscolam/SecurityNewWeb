@@ -165,6 +165,7 @@ REGIONS = {
     "europe": "Europe",
     "asia_pacific": "Asia Pacific",
     "china": "China",
+    "hong_kong": "Hong Kong",
     "middle_east": "Middle East",
     "africa": "Africa",
     "south_america": "South America",

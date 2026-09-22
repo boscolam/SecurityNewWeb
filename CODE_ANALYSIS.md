@@ -35,7 +35,7 @@ This is a well-structured Flask web application designed for cybersecurity profe
 
 **Contents**:
 - 90+ predefined RSS feed sources
-- Region definitions (7 regions: Global, North America, Europe, Asia Pacific, China, Middle East, Latin America)
+- Region definitions (9 regions: Global, North America, Europe, Asia Pacific, China, Hong Kong, Middle East, Africa, South America)
 - News categories (6 types: web_news, blog, vendor_research, darkweb, cve, government)
 - Feed types (4 types: rss, web_scrape, api, social_media)
 - Priority rules configuration

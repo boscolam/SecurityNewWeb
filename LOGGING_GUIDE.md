@@ -520,5 +520,5 @@ multitail logs/app.log logs/error.log logs/feed.log
 
 ---
 
-**Version**: 2.6.0 (All module loggers now properly propagate to log files since v2.6.0. Logs accessible under Settings → Logs tab since v2.4.1)  
+**Version**: 2.7.0 (All module loggers now properly propagate to log files since v2.6.0. Logs accessible under Settings → Logs tab since v2.4.1)  
 **Updated**: 2026-09-22

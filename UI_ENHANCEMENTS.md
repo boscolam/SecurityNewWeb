@@ -571,7 +571,7 @@ Target countries are determined by:
 - Device pixel ratio handling for HiDPI displays
 - Equirectangular projection for lat/lon → canvas coordinates
 - Max 35 concurrent arcs for performance
-- Auto-refresh every 30 seconds
+- **Configurable refresh interval** — dropdown in Live Attack Feed panel (10s / 20s / 30s / 1m / 2m / 5m)
 - Responsive: panels collapse on mobile (< 900px)
 
 ### Navigation
@@ -605,15 +605,16 @@ Access via: **Dashboard** → **Attack Map** in the main navigation bar
 - **By Priority** section: click any priority level to filter news by that priority
 - Both redirect to `/news` with the appropriate filter parameter
 
-### Top 20 Security News
+### Top 20 Security Breaches
 
 - Increased from Top 10 to **Top 20**
-- Filtered to show only security-relevant content: hacking incidents + critical/high priority
-- Default sort: **Latest First** (most recent security incidents at top)
+- **Shows only security breaches** (hacking incidents) — no longer includes critical/high-priority non-breach news
+- **CVE exclusion filter** — checkbox to hide articles primarily about CVE disclosures
+- Default sort: **Latest First** (most recent security breaches at top)
 - Sort options: Latest First, Priority, Category
 
 ---
 
-**Version**: 2.6.0  
+**Version**: 2.7.0  
 **Updated**: 2026-09-22  
-**Features**: Interactive Clickable UI + Sorting on All Pages + Search + Real-Time Cyber Attack Map with Detail Overlay
+**Features**: Interactive Clickable UI + Sorting on All Pages + Search + Real-Time Cyber Attack Map with Detail Overlay + Configurable Refresh + Security Breaches Focus + Hong Kong Region

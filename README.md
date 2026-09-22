@@ -2,7 +2,7 @@
 
 A comprehensive Flask-based web application that aggregates cybersecurity news from multiple sources including RSS feeds, vendor security blogs, dark web intelligence, CVE databases, and social media platforms.
 
-![Version](https://img.shields.io/badge/version-2.6.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.7.0-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
 ![Flask](https://img.shields.io/badge/Flask-3.0.0-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
@@ -28,7 +28,7 @@ A comprehensive Flask-based web application that aggregates cybersecurity news f
   - Daily priority rule analysis for effectiveness
 
 - **Smart Filtering**:
-  - Region-based filtering (Global, North America, Europe, Asia Pacific, China, Middle East, Latin America)
+  - Region-based filtering (Global, North America, Europe, Asia Pacific, China, Hong Kong, Middle East, Africa, South America)
   - Category filtering (Web News, Blog, Vendor Research, Dark Web, CVE, Government)
   - Feed type classification (RSS, Web Scrape, API, Social Media)
 
@@ -41,12 +41,13 @@ A comprehensive Flask-based web application that aggregates cybersecurity news f
   - Animated world map showing cyber attacks from source to destination countries
   - Attack data derived from actual news (hacking incidents, CVEs, threat intelligence)
   - Keyword-based detection of threat actors (APT groups, nation-state attackers)
-  - 35 country coordinates with 85+ city dots forming visual world map
+  - 36 country coordinates (including Hong Kong) with 85+ city dots forming visual world map
   - Live attack feed with **clickable entries** — click to see full news detail overlay
+  - **Configurable refresh interval** (10s, 20s, 30s, 1m, 2m, 5m) in the Live Attack Feed panel
   - Severity-coded arcs: Critical (red), High (orange), Medium (yellow), Low (green)
 
 - **Sorting & Search on All Pages** 🆕:
-  - Dashboard: sort Top 20 security news by time, priority, or category
+  - Dashboard: sort Top 20 security breaches by time, priority, or category; CVE exclusion filter
   - News page: sort by priority, time, category, or source
   - CVE Monitor: sort by time, priority, category, or source
   - Priority Rules: sort by score, keyword, level, or hit count; search/filter rules

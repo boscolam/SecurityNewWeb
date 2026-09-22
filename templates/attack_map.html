@@ -422,7 +422,20 @@
     </div>
 
     <div class="map-panel map-log">
-        <h3>LIVE ATTACK FEED</h3>
+        <h3 style="display:flex;justify-content:space-between;align-items:center;">
+            LIVE ATTACK FEED
+            <span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:400;color:#506070;">
+                <i class="fas fa-sync-alt" style="font-size:9px;"></i>
+                <select id="refreshSelect" onchange="changeRefresh(this.value)" style="background:#0d1520;color:#00d4ff;border:1px solid #18283f;border-radius:3px;padding:1px 4px;font-size:10px;font-family:'Courier New',monospace;cursor:pointer;">
+                    <option value="10000">10s</option>
+                    <option value="20000">20s</option>
+                    <option value="30000" selected>30s</option>
+                    <option value="60000">1m</option>
+                    <option value="120000">2m</option>
+                    <option value="300000">5m</option>
+                </select>
+            </span>
+        </h3>
         <div id="attack-log"></div>
     </div>
 
@@ -995,6 +1008,12 @@
         d.textContent = s;
         return d.innerHTML;
     }
+
+    window.changeRefresh = function(ms) {
+        REFRESH_MS = parseInt(ms, 10);
+        clearInterval(refreshTimer);
+        refreshTimer = setInterval(fetchData, REFRESH_MS);
+    };
 
     window.togglePause = function() {
         paused = !paused;

@@ -193,16 +193,18 @@ def setup_update_scheduler():
 
 @app.route('/')
 def dashboard():
-    """Main dashboard page with top 20 security news, stats, and overview."""
+    """Main dashboard page with top 20 security breach news, stats, and overview."""
     sort = request.args.get('sort', 'time')
     if sort not in ('time', 'priority', 'category'):
         sort = 'time'
-    top_news = get_top_news(limit=20, sort=sort)
+    exclude_cve = request.args.get('exclude_cve', '0') == '1'
+    top_news = get_top_news(limit=20, sort=sort, exclude_cve=exclude_cve)
     stats = get_news_stats()
     return render_template('dashboard.html',
                            top_news=top_news,
                            stats=stats,
                            sort=sort,
+                           exclude_cve=exclude_cve,
                            regions=REGIONS,
                            categories=NEWS_CATEGORIES,
                            now=datetime.utcnow())
@@ -748,6 +750,7 @@ def api_attack_data():
         'Nigeria': {'lat': 9.1, 'lon': 7.5},
         'Kenya': {'lat': -1.3, 'lon': 36.8},
         'Taiwan': {'lat': 23.7, 'lon': 121.0},
+        'Hong Kong': {'lat': 22.3, 'lon': 114.2},
     }
 
     ATTACKER_PATTERNS = {
@@ -773,6 +776,7 @@ def api_attack_data():
         'Israel': ['israel'],
         'South Korea': ['south korea', 'korean'],
         'Taiwan': ['taiwan', 'taiwanese'],
+        'Hong Kong': ['hong kong'],
     }
 
     REGION_TARGETS = {
@@ -781,6 +785,7 @@ def api_attack_data():
         'europe': ['United Kingdom', 'Germany', 'France', 'Netherlands', 'Poland'],
         'asia_pacific': ['Japan', 'South Korea', 'Australia', 'Singapore', 'India'],
         'china': ['China', 'Taiwan'],
+        'hong_kong': ['Hong Kong', 'China'],
         'middle_east': ['Israel', 'Saudi Arabia', 'UAE', 'Turkey'],
         'africa': ['South Africa', 'Nigeria', 'Kenya', 'Egypt'],
         'south_america': ['Brazil', 'Mexico'],
