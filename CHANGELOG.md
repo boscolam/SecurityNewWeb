@@ -2,6 +2,21 @@
 
 All notable changes to the Cybersecurity News Dashboard will be documented in this file.
 
+## [2.8.1] - 2026-09-23
+
+### Security — Removed Hardcoded Secret Key
+
+#### Secret Key Fix
+- **Removed hardcoded Flask `SECRET_KEY`** from source code
+- Now uses `FLASK_SECRET_KEY` environment variable if set, otherwise auto-generates a random key at startup
+- To set a persistent key, add `FLASK_SECRET_KEY=your-secret-here` to your `.env` file or environment
+
+#### Bug Verification
+- Confirmed all prior fixes remain intact: BuildError prevention (hardcoded nav URLs), sort validation whitelists, log propagation, discovered feed name fallback
+- All Python files pass `py_compile` syntax check
+
+---
+
 ## [2.8.0] - 2026-09-23
 
 ### Added - AI/ML Insights Page, Auto-Discovered Feed Fix & All v2.7.0 Features

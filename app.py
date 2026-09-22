@@ -59,7 +59,7 @@ _root.addHandler(_err_fh)
 
 # Initialize Flask app
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'cybersec-news-dashboard-secret-change-in-production'
+app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY') or os.urandom(32).hex()
 
 # ============================================================
 # SCHEDULED TASKS

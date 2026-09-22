@@ -26,7 +26,7 @@ This is a well-structured Flask web application designed for cybersecurity profe
 - Comprehensive logging
 
 **Security Considerations**:
-- ⚠️ Default secret key needs to be changed in production
+- ✅ Secret key auto-generated at startup or read from `FLASK_SECRET_KEY` env var (fixed in v2.8.1)
 - ✅ Proper request validation
 - ✅ JSON response sanitization
 
@@ -309,12 +309,8 @@ Base score: 50
 
 ### Security Recommendations 🔒
 
-1. **Immediate**:
-   ```python
-   # Change in app.py
-   import secrets
-   app.config['SECRET_KEY'] = secrets.token_hex(32)
-   ```
+1. ~~**Immediate**~~ ✅ **Fixed in v2.8.1**:
+   Secret key is now auto-generated or read from `FLASK_SECRET_KEY` environment variable.
 
 2. **Short-term**:
    - Add Flask-Limiter for rate limiting
