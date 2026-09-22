@@ -44,7 +44,7 @@ chmod +x setup.sh service.sh
 
 # 5. Verify update
 git log --oneline -1
-# Should show: 7981291 v2.2.0: Add systemd service support
+# Should show the latest version commit
 
 # 6. Restart application
 ./service.sh restart
@@ -291,7 +291,7 @@ When something goes wrong, try these in order:
 ### 1. **Check Version**
 ```bash
 git log --oneline -1
-# Should show: 7981291 v2.2.0
+cat VERSION
 ```
 
 ### 2. **Check Service Status**

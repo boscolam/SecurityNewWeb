@@ -495,7 +495,7 @@ Version 2.5.0 adds a full-page animated cyber attack map at `/attack-map`.
 
 ### Features
 
-- **World Map**: 85+ city dots forming recognizable continent shapes on dark canvas
+- **World Map**: 20 filled continent/island polygons as background + 85+ city dots on dark canvas
 - **Animated Arcs**: Bezier curve attacks from source to destination countries
 - **Particle Effects**: Glowing particles travel along arcs with trailing light
 - **Impact Ripples**: Expanding circles at attack destinations
@@ -579,6 +579,6 @@ Access via: **Dashboard** → **Attack Map** in the main navigation bar
 
 ---
 
-**Version**: 2.5.0  
+**Version**: 2.5.2  
 **Updated**: 2026-09-22  
-**Features**: Interactive Clickable UI + Real-Time Cyber Attack Map
+**Features**: Interactive Clickable UI + Real-Time Cyber Attack Map with World Map Background

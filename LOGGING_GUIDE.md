@@ -477,5 +477,5 @@ tar -czf diagnostic-$(date +%Y%m%d).tar.gz \
 
 ---
 
-**Version**: 2.3.0+  
+**Version**: 2.3.0+ (Logs now accessible under Settings → Logs tab since v2.4.1)  
 **Updated**: 2026-09-22

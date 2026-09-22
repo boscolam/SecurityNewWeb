@@ -176,14 +176,17 @@ Base score: 50
 
 ### 7. **Frontend** - Web Interface
 
-**Templates** (7 HTML files):
+**Templates** (10 HTML files):
 - `base.html`: Base layout with navigation
 - `dashboard.html`: Main dashboard with stats
 - `news.html`: News listing with filters
 - `cve.html`: CVE-specific view
-- `sources.html`: Feed source management
+- `attack_map.html`: Real-time cyber attack map with canvas animation
+- `sources.html`: Feed source management (Settings tab)
 - `priorities.html`: Priority rules configuration
-- `settings.html`: Application settings
+- `settings.html`: Application settings (Settings tab)
+- `updates.html`: System updates management (Settings tab)
+- `logs.html`: System logs viewer (Settings tab)
 
 **Static Assets**:
 - `style.css`: Responsive design with dark/light theme support

@@ -22,7 +22,7 @@ The Cybersecurity News Dashboard includes an **Auto-Update** feature that automa
 
 Navigate to: **http://localhost:5000/updates**
 
-Or click **"Updates"** in the main navigation menu.
+Or click **"Settings"** in the main navigation menu, then select the **"Updates"** tab.
 
 ### 2. Enable Auto-Updates
 
@@ -69,10 +69,11 @@ Choose how often to check for updates:
 
 The auto-update system is **version-agnostic** and works across all versions:
 
-✅ **v1.0 → v2.2+**: Seamless update from initial release  
-✅ **v2.0 → v2.2+**: Updates with new CERT feeds preserved  
-✅ **v2.1 → v2.2+**: Auto-update feature self-updates  
+✅ **v1.0 → v2.5+**: Seamless update from initial release  
+✅ **v2.0 → v2.5+**: Updates with new CERT feeds preserved  
+✅ **v2.1 → v2.5+**: Auto-update feature self-updates  
 ✅ **v2.2+**: Full systemd service support  
+✅ **v2.5+**: Attack map, clickable badges, logging system  
 
 **Key Points**:
 - Updates from any version to the latest

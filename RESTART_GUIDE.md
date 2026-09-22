@@ -125,11 +125,12 @@ curl -s http://localhost:5000/ | grep -o 'href="/[^"]*"' | sort -u
 ```
 
 Should include:
-- `/logs` - Logs viewer (v2.3.0+)
-- `/updates` - Auto-update (v2.1.0+)
-- `/sources` - Feed sources
+- `/attack-map` - Cyber attack map (v2.5.0+)
+- `/logs` - Logs viewer (v2.3.0+, under Settings tabs)
+- `/updates` - Auto-update (v2.1.0+, under Settings tabs)
+- `/sources` - Feed sources (under Settings tabs)
 - `/priorities` - Priority rules
-- `/settings` - Settings
+- `/settings` - Settings (with tabs: Settings, Sources, Updates, Logs)
 
 ---
 
