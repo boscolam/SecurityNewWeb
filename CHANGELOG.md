@@ -2,6 +2,17 @@
 
 All notable changes to the Cybersecurity News Dashboard will be documented in this file.
 
+## [2.5.1] - 2026-09-22
+
+### Fixed - Attack Map BuildError
+
+- **Fixed BuildError on all pages** when service hasn't restarted after update
+  - Changed Attack Map nav link from `url_for('attack_map_page')` to hardcoded `/attack-map` URL
+  - Prevents `werkzeug.routing.exceptions.BuildError` from crashing every page
+  - Other nav links using `url_for()` for established routes remain unchanged
+
+---
+
 ## [2.5.0] - 2026-09-22
 
 ### Added - Real-Time Cyber Attack Map
