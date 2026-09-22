@@ -13,8 +13,7 @@ from database import (
     get_db, get_priority_rules, add_priority_rule,
     update_priority_rule, log_priority_analysis
 )
-
-logger = logging.getLogger(__name__)
+from logger_config import app_logger as logger
 
 
 def run_daily_priority_analysis():

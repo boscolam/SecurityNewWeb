@@ -229,12 +229,21 @@ def insert_news(news_item):
         conn.close()
 
 
-def get_news(filters=None, page=1, per_page=25):
+def get_news(filters=None, page=1, per_page=25, sort='priority'):
     """
-    Fetch news articles with optional filters.
+    Fetch news articles with optional filters and sort.
     filters dict can contain: category, region, source_id, priority_label,
     is_hacking_incident, has_cve, cve_vendor, search, date_from, date_to
+    sort: 'priority', 'time', 'category', 'source'
     """
+    SORT_MAP = {
+        'time': 'n.published_date DESC',
+        'priority': 'n.priority_score DESC, n.published_date DESC',
+        'category': 'n.category, n.published_date DESC',
+        'source': 's.name, n.published_date DESC',
+    }
+    order = SORT_MAP.get(sort, SORT_MAP['priority'])
+
     conn = get_db()
     query = "SELECT n.*, s.name as source_name FROM news n LEFT JOIN sources s ON n.source_id = s.id WHERE 1=1"
     params = []
@@ -269,7 +278,7 @@ def get_news(filters=None, page=1, per_page=25):
             query += " AND n.published_date <= ?"
             params.append(filters['date_to'])
 
-    query += " ORDER BY n.priority_score DESC, n.published_date DESC"
+    query += f" ORDER BY {order}"
     query += f" LIMIT {per_page} OFFSET {(page - 1) * per_page}"
 
     rows = conn.execute(query, params).fetchall()
@@ -282,18 +291,41 @@ def get_news(filters=None, page=1, per_page=25):
     return [dict(row) for row in rows], total
 
 
-def get_top_news(limit=10):
-    """Get top N news items sorted by priority score, hacking incidents first."""
+def get_top_news(limit=20, sort='time'):
+    """Get top N security-relevant news (hacking incidents + critical/high priority).
+    Default sort by time to show most recent security events first."""
+    SORT_MAP = {
+        'time': 'n.published_date DESC',
+        'priority': 'n.is_hacking_incident DESC, n.priority_score DESC, n.published_date DESC',
+        'category': 'n.category, n.published_date DESC',
+    }
+    order = SORT_MAP.get(sort, SORT_MAP['time'])
+
     conn = get_db()
-    rows = conn.execute('''
+    rows = conn.execute(f'''
         SELECT n.*, s.name as source_name
         FROM news n
         LEFT JOIN sources s ON n.source_id = s.id
-        ORDER BY n.is_hacking_incident DESC, n.priority_score DESC, n.published_date DESC
+        WHERE n.is_hacking_incident = 1
+           OR n.priority_label IN ('critical', 'high')
+        ORDER BY {order}
         LIMIT ?
     ''', (limit,)).fetchall()
     conn.close()
     return [dict(row) for row in rows]
+
+
+def get_news_by_id(news_id):
+    """Get a single news article by ID with source name."""
+    conn = get_db()
+    row = conn.execute('''
+        SELECT n.*, s.name as source_name
+        FROM news n
+        LEFT JOIN sources s ON n.source_id = s.id
+        WHERE n.id = ?
+    ''', (news_id,)).fetchone()
+    conn.close()
+    return dict(row) if row else None
 
 
 def get_news_stats():

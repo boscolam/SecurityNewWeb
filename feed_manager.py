@@ -20,8 +20,7 @@ from database import (
     get_sources, insert_news, update_source_fetch_status,
     get_priority_rules, increment_rule_hit, get_setting
 )
-
-logger = logging.getLogger(__name__)
+from logger_config import feed_logger as logger
 
 # Request timeout and headers
 REQUEST_TIMEOUT = 30

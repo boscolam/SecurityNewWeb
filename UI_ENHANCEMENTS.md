@@ -1,6 +1,6 @@
-# UI Enhancements - Interactive Clickable Elements & Attack Map
+# UI Enhancements - Interactive Clickable Elements, Sorting & Attack Map
 
-Version 2.4.0 introduced comprehensive clickable UI elements. Version 2.5.0 adds a real-time cyber attack map visualization.
+Version 2.4.0 introduced clickable UI elements. Version 2.5.0 added the attack map. Version 2.6.0 adds sorting on all pages, search on priorities, clickable dashboard breakdown sections, and attack map detail overlay.
 
 ---
 
@@ -491,7 +491,7 @@ If you have suggestions for additional clickable elements or UI improvements:
 
 ### Overview
 
-Version 2.5.0 adds a full-page animated cyber attack map at `/attack-map`.
+Full-page animated cyber attack map at `/attack-map`.
 
 ### Features
 
@@ -500,6 +500,7 @@ Version 2.5.0 adds a full-page animated cyber attack map at `/attack-map`.
 - **Particle Effects**: Glowing particles travel along arcs with trailing light
 - **Impact Ripples**: Expanding circles at attack destinations
 - **Source Pulses**: Pulsing rings at attack origins
+- **Clickable Live Feed** (v2.6.0): Click any entry in the Live Attack Feed to view full news details in an overlay panel with title, summary, severity, route, and a link to the full article
 
 ### Data Source
 
@@ -579,6 +580,40 @@ Access via: **Dashboard** → **Attack Map** in the main navigation bar
 
 ---
 
-**Version**: 2.5.2  
+---
+
+## 🔀 Sorting & Search (v2.6.0)
+
+### Sort Controls on All Pages
+
+| Page | Sort Options | Default |
+|------|-------------|---------|
+| Dashboard (Top 20) | Latest First, Priority, Category | Latest First |
+| Security News | Priority, Latest First, Category, Source | Priority |
+| CVE Monitor | Latest First, Priority, Category, Source | Latest First |
+| Priority Rules | Score (High→Low), Keyword (A→Z), Level, Most Hits | Score |
+
+### Search on Priority Rules
+
+- Text filter searches across keyword name and level
+- Clear button to reset search
+- Combined with sort for powerful rule management
+
+### Clickable Dashboard Breakdown
+
+- **By Category** section: click any category to filter news by that category
+- **By Priority** section: click any priority level to filter news by that priority
+- Both redirect to `/news` with the appropriate filter parameter
+
+### Top 20 Security News
+
+- Increased from Top 10 to **Top 20**
+- Filtered to show only security-relevant content: hacking incidents + critical/high priority
+- Default sort: **Latest First** (most recent security incidents at top)
+- Sort options: Latest First, Priority, Category
+
+---
+
+**Version**: 2.6.0  
 **Updated**: 2026-09-22  
-**Features**: Interactive Clickable UI + Real-Time Cyber Attack Map with World Map Background
+**Features**: Interactive Clickable UI + Sorting on All Pages + Search + Real-Time Cyber Attack Map with Detail Overlay

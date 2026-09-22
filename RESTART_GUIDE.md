@@ -125,12 +125,15 @@ curl -s http://localhost:5000/ | grep -o 'href="/[^"]*"' | sort -u
 ```
 
 Should include:
-- `/attack-map` - Cyber attack map (v2.5.0+)
+- `/attack-map` - Cyber attack map with clickable detail overlay (v2.5.0+)
 - `/logs` - Logs viewer (v2.3.0+, under Settings tabs)
 - `/updates` - Auto-update (v2.1.0+, under Settings tabs)
 - `/sources` - Feed sources (under Settings tabs)
-- `/priorities` - Priority rules
+- `/priorities` - Priority rules with search and sort (v2.6.0+)
 - `/settings` - Settings (with tabs: Settings, Sources, Updates, Logs)
+- `/api/news/<id>` - Single news detail API (v2.6.0+)
+
+All pages now support sorting via `?sort=` parameter (v2.6.0+)
 
 ---
 

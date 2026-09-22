@@ -2,6 +2,57 @@
 
 All notable changes to the Cybersecurity News Dashboard will be documented in this file.
 
+## [2.6.0] - 2026-09-22
+
+### Added - Sorting, Search, Attack Map Detail & Logging Improvements
+
+#### Sorting on All Pages
+- **Security Dashboard**: Sort control for Top 20 news (Latest First, Priority, Category)
+- **Security News page**: Sort dropdown (Priority, Latest First, Category, Source)
+- **CVE Monitor page**: Sort dropdown (Latest First, Priority, Category, Source)
+- **Priority Rules page**: Sort by Score, Keyword, Level, or Most Hits
+
+#### Search on Priority Rules
+- **Search/filter** for priority rules by keyword or level name
+- Clear button to reset search
+
+#### Dashboard Enhancements
+- **Top 20 Security News** (increased from 10) — filtered to security-relevant content
+- **Default sort by time** shows most recent security incidents first
+- **Clickable breakdown sections** — click any category or priority level under "By Category" and "By Priority" to filter news
+- Top 20 now filters for hacking incidents + critical/high priority to ensure security breach visibility
+
+#### Attack Map — Clickable Live Feed
+- **Click any entry** in the Live Attack Feed to see full news details
+- **Detail overlay** shows title, source→target route, severity, type, category, time, summary
+- **"Read Full Article"** link opens the original news article in a new tab
+- Click backdrop or × button to close the overlay and return to the map
+
+#### Logging Improvements
+- **All module loggers** now propagate to log files (app.log, error.log, feed.log)
+- Feed manager writes to `feed.log` via dedicated feed logger
+- Priority engine writes to `app.log` via app logger
+- Root logger routes all module output to `app.log` and errors to `error.log`
+- **HTTP access logging** — every request logged to `access.log` automatically
+- All logs visible on the Logs page under Settings
+
+#### API Additions
+- `GET /api/news/<id>` — single news article detail endpoint
+- Attack data API now includes `url` and `summary` fields
+
+#### Real-Time Log Monitoring (CLI)
+- Monitor logs in real-time from Linux/macOS terminal:
+  ```
+  tail -f logs/app.log          # Application log
+  tail -f logs/error.log        # Errors only
+  tail -f logs/feed.log         # Feed operations
+  tail -f logs/access.log       # HTTP requests
+  tail -f logs/update.log       # Auto-updates
+  tail -f logs/*.log            # All logs combined
+  ```
+
+---
+
 ## [2.5.2] - 2026-09-22
 
 ### Improved - World Map Background for Attack Map

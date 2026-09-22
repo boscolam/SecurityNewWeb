@@ -477,5 +477,48 @@ tar -czf diagnostic-$(date +%Y%m%d).tar.gz \
 
 ---
 
-**Version**: 2.3.0+ (Logs now accessible under Settings → Logs tab since v2.4.1)  
+---
+
+## 🖥️ **Real-Time Log Monitoring from Linux/macOS CLI**
+
+For administrators who prefer the terminal, you can monitor logs in real-time using `tail -f`:
+
+```bash
+# Watch the main application log
+tail -f logs/app.log
+
+# Watch errors only (useful for debugging)
+tail -f logs/error.log
+
+# Watch feed fetch operations
+tail -f logs/feed.log
+
+# Watch HTTP access requests
+tail -f logs/access.log
+
+# Watch auto-update activity
+tail -f logs/update.log
+
+# Watch ALL logs simultaneously
+tail -f logs/*.log
+
+# Watch with grep filter (e.g., only ERROR lines)
+tail -f logs/app.log | grep --line-buffered ERROR
+
+# Service logs (if running as systemd service)
+journalctl --user -u cybersec-news -f
+```
+
+**Tip**: Use `multitail` for a split-screen view of multiple log files:
+```bash
+# Install multitail (Ubuntu/Debian)
+sudo apt install multitail
+
+# Monitor multiple logs in split view
+multitail logs/app.log logs/error.log logs/feed.log
+```
+
+---
+
+**Version**: 2.6.0 (All module loggers now properly propagate to log files since v2.6.0. Logs accessible under Settings → Logs tab since v2.4.1)  
 **Updated**: 2026-09-22

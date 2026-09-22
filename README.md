@@ -2,7 +2,7 @@
 
 A comprehensive Flask-based web application that aggregates cybersecurity news from multiple sources including RSS feeds, vendor security blogs, dark web intelligence, CVE databases, and social media platforms.
 
-![Version](https://img.shields.io/badge/version-2.5.2-blue.svg)
+![Version](https://img.shields.io/badge/version-2.6.0-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
 ![Flask](https://img.shields.io/badge/Flask-3.0.0-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
@@ -37,22 +37,31 @@ A comprehensive Flask-based web application that aggregates cybersecurity news f
   - Manual approval workflow for discovered feeds
   - Prevents duplicate feeds
 
-- **Real-Time Cyber Attack Map** 🆕:
+- **Real-Time Cyber Attack Map**:
   - Animated world map showing cyber attacks from source to destination countries
   - Attack data derived from actual news (hacking incidents, CVEs, threat intelligence)
   - Keyword-based detection of threat actors (APT groups, nation-state attackers)
   - 35 country coordinates with 85+ city dots forming visual world map
-  - Live attack feed, threat overview stats, and top attacker rankings
+  - Live attack feed with **clickable entries** — click to see full news detail overlay
   - Severity-coded arcs: Critical (red), High (orange), Medium (yellow), Low (green)
+
+- **Sorting & Search on All Pages** 🆕:
+  - Dashboard: sort Top 20 security news by time, priority, or category
+  - News page: sort by priority, time, category, or source
+  - CVE Monitor: sort by time, priority, category, or source
+  - Priority Rules: sort by score, keyword, level, or hit count; search/filter rules
 
 - **Clickable Badges & Filtering**:
   - All badges/tags across Dashboard, News, and CVE pages are clickable
   - One-click filtering by priority, category, region, source, vendor
+  - Dashboard breakdown sections (By Category / By Priority) are clickable
   - Hover animations with glow effects
 
 - **Comprehensive Logging System**:
   - 5 separate log files (app, error, access, update, feed)
+  - All module loggers properly propagate to log files
   - Web-based log viewer with search, auto-refresh, and download
+  - Real-time CLI monitoring: `tail -f logs/*.log`
   - RotatingFileHandler: 10MB max, 5 backups per log
 
 ### Technical Features
@@ -215,6 +224,7 @@ Manage at `/sources`:
 ### Attack Map
 - `GET /attack-map` - Real-time cyber attack map visualization
 - `GET /api/attack-data` - Attack events derived from news data (JSON)
+- `GET /api/news/<id>` - Single news article detail (used by attack map overlay)
 
 ### System
 - `GET /settings` - Application settings (tabbed: Settings, Sources, Updates, Logs)
@@ -364,9 +374,11 @@ Credits to:
 ## Roadmap
 
 Completed:
-- [x] Real-time cyber attack map visualization
-- [x] Clickable badges for instant filtering
-- [x] Comprehensive logging system with web viewer
+- [x] Real-time cyber attack map with clickable detail overlay
+- [x] Sorting on all pages (dashboard, news, CVE, priorities)
+- [x] Search on priority rules page
+- [x] Clickable badges and breakdown sections for instant filtering
+- [x] Comprehensive logging with proper module propagation
 - [x] Auto-update system with service restart
 - [x] Settings consolidation with tabbed navigation
 

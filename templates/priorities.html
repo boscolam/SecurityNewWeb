@@ -98,6 +98,34 @@
          ============================================================ -->
     <div class="section">
         <h2><i class="fas fa-list-ol"></i> All Priority Rules ({{ rules|length }})</h2>
+
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:15px;flex-wrap:wrap;">
+            <form method="GET" action="{{ url_for('priorities_page') }}" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <label style="font-size:12px;color:#6c757d;white-space:nowrap;"><i class="fas fa-search"></i> Search:</label>
+                    <input type="text" name="search" placeholder="Filter rules..."
+                           value="{{ search }}" style="padding:6px 10px;border-radius:4px;border:1px solid #dee2e6;font-size:13px;width:180px;">
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <label style="font-size:12px;color:#6c757d;white-space:nowrap;"><i class="fas fa-sort"></i> Sort:</label>
+                    <select name="sort" style="padding:6px 10px;border-radius:4px;border:1px solid #dee2e6;font-size:13px;">
+                        <option value="score" {% if sort == 'score' %}selected{% endif %}>Score (High→Low)</option>
+                        <option value="keyword" {% if sort == 'keyword' %}selected{% endif %}>Keyword (A→Z)</option>
+                        <option value="level" {% if sort == 'level' %}selected{% endif %}>Level</option>
+                        <option value="hits" {% if sort == 'hits' %}selected{% endif %}>Most Hits</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary">
+                    <i class="fas fa-filter"></i> Apply
+                </button>
+                {% if search %}
+                <a href="{{ url_for('priorities_page') }}" class="btn btn-sm btn-outline">
+                    <i class="fas fa-times"></i> Clear
+                </a>
+                {% endif %}
+            </form>
+        </div>
+
         <div class="table-responsive">
             <table class="data-table">
                 <thead>

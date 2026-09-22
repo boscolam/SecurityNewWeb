@@ -13,7 +13,7 @@ This is a well-structured Flask web application designed for cybersecurity profe
 **Purpose**: Flask application entry point with route handlers and scheduler setup
 
 **Key Features**:
-- 15+ route handlers for different dashboards and API endpoints
+- 17+ route handlers for different dashboards and API endpoints (including sort/search support)
 - Background task scheduling using APScheduler
 - Logging configuration
 - Database initialization on startup

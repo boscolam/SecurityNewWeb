@@ -100,9 +100,18 @@
          ============================================================ -->
     <div class="section">
         <div class="section-header">
-            <h2><i class="fas fa-fire"></i> Top 10 Priority News</h2>
-            <!-- Link to see all news with no filters applied -->
-            <a href="{{ url_for('news_list') }}" class="btn btn-sm">View All News &rarr;</a>
+            <h2><i class="fas fa-fire"></i> Top 20 Security News</h2>
+            <div class="header-actions">
+                <div class="sort-control" style="display:inline-flex;align-items:center;gap:6px;margin-right:12px;">
+                    <label style="font-size:12px;color:#6c757d;white-space:nowrap;">Sort by:</label>
+                    <select onchange="window.location.href='/?sort='+this.value" style="padding:4px 8px;border-radius:4px;border:1px solid #dee2e6;font-size:12px;background:#fff;">
+                        <option value="time" {% if sort == 'time' %}selected{% endif %}>Latest First</option>
+                        <option value="priority" {% if sort == 'priority' %}selected{% endif %}>Priority</option>
+                        <option value="category" {% if sort == 'category' %}selected{% endif %}>Category</option>
+                    </select>
+                </div>
+                <a href="{{ url_for('news_list') }}" class="btn btn-sm">View All News &rarr;</a>
+            </div>
         </div>
 
         <div class="news-list">
@@ -207,12 +216,13 @@
          Shows distribution of news by category and priority level
          ============================================================ -->
     <div class="stats-breakdown">
-        <!-- Breakdown by news category (hacking, CVE, blog, etc.) -->
         <div class="breakdown-card">
             <h3><i class="fas fa-chart-pie"></i> By Category</h3>
             <div class="breakdown-list">
                 {% for cat, count in stats.by_category.items() %}
-                <div class="breakdown-row">
+                <div class="breakdown-row clickable" onclick="filterByCategory('{{ cat }}')"
+                     title="Click to view {{ cat|category_label }} news"
+                     style="cursor:pointer;padding:4px 6px;border-radius:4px;transition:background 0.2s;">
                     <span>{{ cat|category_label }}</span>
                     <span class="breakdown-count">{{ count }}</span>
                 </div>
@@ -223,12 +233,13 @@
             </div>
         </div>
 
-        <!-- Breakdown by priority level (critical, high, medium, low) -->
         <div class="breakdown-card">
             <h3><i class="fas fa-signal"></i> By Priority</h3>
             <div class="breakdown-list">
                 {% for pri, count in stats.by_priority.items() %}
-                <div class="breakdown-row">
+                <div class="breakdown-row clickable" onclick="filterByPriority('{{ pri }}')"
+                     title="Click to view {{ pri|title }} priority news"
+                     style="cursor:pointer;padding:4px 6px;border-radius:4px;transition:background 0.2s;">
                     <span class="priority-dot" style="background: {{ pri|priority_color }};"></span>
                     <span>{{ pri|title }}</span>
                     <span class="breakdown-count">{{ count }}</span>

@@ -69,11 +69,12 @@ Choose how often to check for updates:
 
 The auto-update system is **version-agnostic** and works across all versions:
 
-✅ **v1.0 → v2.5+**: Seamless update from initial release  
-✅ **v2.0 → v2.5+**: Updates with new CERT feeds preserved  
-✅ **v2.1 → v2.5+**: Auto-update feature self-updates  
+✅ **v1.0 → v2.6+**: Seamless update from initial release  
+✅ **v2.0 → v2.6+**: Updates with new CERT feeds preserved  
+✅ **v2.1 → v2.6+**: Auto-update feature self-updates  
 ✅ **v2.2+**: Full systemd service support  
 ✅ **v2.5+**: Attack map, clickable badges, logging system  
+✅ **v2.6+**: Sorting on all pages, search on priorities, attack map detail overlay, improved logging  
 
 **Key Points**:
 - Updates from any version to the latest

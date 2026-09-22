@@ -82,14 +82,22 @@
             </a>
         </div>
 
-        <!-- CVE ID search: search for specific CVE identifiers (e.g., CVE-2024-1234) -->
-        <div class="cve-search">
-            <form method="GET" action="{{ url_for('cve_page') }}">
+        <div class="cve-search" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <form method="GET" action="{{ url_for('cve_page') }}" style="display:flex;gap:10px;align-items:center;flex:1;flex-wrap:wrap;">
                 {% if request.args.get('vendor') %}
                 <input type="hidden" name="vendor" value="{{ request.args.get('vendor') }}">
                 {% endif %}
                 <input type="text" name="search" placeholder="Search CVE ID (e.g., CVE-2024-1234)..."
-                       value="{{ request.args.get('search', '') }}" class="search-input">
+                       value="{{ request.args.get('search', '') }}" class="search-input" style="flex:1;min-width:200px;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <label style="font-size:12px;color:#6c757d;white-space:nowrap;"><i class="fas fa-sort"></i> Sort:</label>
+                    <select name="sort" style="padding:6px 10px;border-radius:4px;border:1px solid #dee2e6;font-size:13px;">
+                        <option value="time" {% if sort == 'time' %}selected{% endif %}>Latest First</option>
+                        <option value="priority" {% if sort == 'priority' %}selected{% endif %}>Priority</option>
+                        <option value="category" {% if sort == 'category' %}selected{% endif %}>Category</option>
+                        <option value="source" {% if sort == 'source' %}selected{% endif %}>Source</option>
+                    </select>
+                </div>
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-search"></i> Search
                 </button>

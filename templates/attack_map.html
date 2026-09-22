@@ -144,6 +144,12 @@
         padding: 7px 0;
         border-bottom: 1px solid rgba(255,255,255,0.04);
         animation: logFadeIn 0.4s ease;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .log-entry:hover {
+        background: rgba(0, 212, 255, 0.06);
     }
 
     @keyframes logFadeIn {
@@ -274,6 +280,108 @@
         .map-header h2 { font-size: 12px; letter-spacing: 1px; }
         .map-stats { top: 50px; left: 8px; padding: 8px 10px; }
     }
+
+    .detail-overlay {
+        display: none;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 480px;
+        max-width: 90vw;
+        max-height: 70vh;
+        overflow-y: auto;
+        background: rgba(8, 14, 28, 0.96);
+        border: 1px solid rgba(0, 212, 255, 0.25);
+        border-radius: 10px;
+        padding: 24px;
+        z-index: 100;
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 212, 255, 0.1);
+    }
+
+    .detail-overlay .detail-close {
+        position: absolute;
+        top: 12px;
+        right: 16px;
+        color: #506070;
+        font-size: 22px;
+        cursor: pointer;
+        transition: color 0.2s;
+        line-height: 1;
+    }
+
+    .detail-overlay .detail-close:hover { color: #00d4ff; }
+
+    .detail-overlay h3 {
+        color: #e4e6eb;
+        font-size: 15px;
+        line-height: 1.5;
+        margin: 0 0 12px 0;
+        padding-right: 30px;
+    }
+
+    .detail-overlay .detail-route {
+        font-size: 13px;
+        margin-bottom: 10px;
+    }
+
+    .detail-overlay .detail-meta {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-bottom: 12px;
+        font-size: 11px;
+        color: #506070;
+    }
+
+    .detail-overlay .detail-meta .meta-label {
+        color: #607080;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 9px;
+    }
+
+    .detail-overlay .detail-meta .meta-value {
+        color: #8090a0;
+    }
+
+    .detail-overlay .detail-summary {
+        color: #8090a0;
+        font-size: 12px;
+        line-height: 1.6;
+        margin: 12px 0;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 6px;
+        border-left: 2px solid rgba(0, 212, 255, 0.2);
+    }
+
+    .detail-overlay .detail-link {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 6px 14px;
+        background: rgba(0, 212, 255, 0.1);
+        border: 1px solid rgba(0, 212, 255, 0.2);
+        border-radius: 5px;
+        color: #00d4ff;
+        font-size: 12px;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .detail-overlay .detail-link:hover {
+        background: rgba(0, 212, 255, 0.2);
+        border-color: rgba(0, 212, 255, 0.4);
+    }
+
+    .detail-backdrop {
+        display: none;
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 99;
+    }
 </style>
 {% endblock %}
 
@@ -330,6 +438,9 @@
             <i class="fas fa-pause" id="pause-icon"></i>
         </button>
     </div>
+
+    <div class="detail-backdrop" id="detail-backdrop" onclick="closeDetail()"></div>
+    <div class="detail-overlay" id="detail-overlay"></div>
 </div>
 {% endblock %}
 
@@ -827,9 +938,48 @@
                 ' <span class="arrow">→</span> ' +
                 '<span class="tgt">' + esc(atk.target.country) + '</span>' +
             '</div>';
+        entry.addEventListener('click', function() { showDetail(atk); });
         log.insertBefore(entry, log.firstChild);
         while (log.children.length > 30) log.removeChild(log.lastChild);
     }
+
+    function showDetail(atk) {
+        var overlay = document.getElementById('detail-overlay');
+        var backdrop = document.getElementById('detail-backdrop');
+        var titleText = esc(atk.title || 'Untitled');
+        var summaryText = atk.summary ? esc(atk.summary) : '';
+        var timeStr = atk.time ? esc(atk.time.replace('T', ' ').substring(0, 19)) : '';
+
+        var html = '<div class="detail-close" onclick="closeDetail()">&times;</div>' +
+            '<h3>' + titleText + '</h3>' +
+            '<div class="detail-route">' +
+                '<span class="src">' + esc(atk.source.country) + '</span>' +
+                ' <span class="arrow">→</span> ' +
+                '<span class="tgt">' + esc(atk.target.country) + '</span>' +
+            '</div>' +
+            '<div class="detail-meta">' +
+                '<span class="log-severity ' + esc(atk.severity) + '">' + esc(atk.severity) + '</span>' +
+                '<span class="meta-value"><i class="fas fa-tag"></i> ' + esc(atk.type) + '</span>' +
+                '<span class="meta-value"><i class="fas fa-layer-group"></i> ' + esc(atk.category) + '</span>' +
+                (timeStr ? '<span class="meta-value"><i class="fas fa-clock"></i> ' + timeStr + '</span>' : '') +
+            '</div>';
+        if (summaryText) {
+            html += '<div class="detail-summary">' + summaryText + '</div>';
+        }
+        if (atk.url) {
+            html += '<a href="' + esc(atk.url) + '" target="_blank" rel="noopener noreferrer" class="detail-link">' +
+                '<i class="fas fa-external-link-alt"></i> Read Full Article</a>';
+        }
+
+        overlay.innerHTML = html;
+        overlay.style.display = 'block';
+        backdrop.style.display = 'block';
+    }
+
+    window.closeDetail = function() {
+        document.getElementById('detail-overlay').style.display = 'none';
+        document.getElementById('detail-backdrop').style.display = 'none';
+    };
 
     function updateClock() {
         var now = new Date();

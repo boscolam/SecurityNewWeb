@@ -11,6 +11,7 @@ Or deploy behind Apache with mod_wsgi (see INSTALL.md)
 """
 
 import logging
+import os
 import threading
 from datetime import datetime
 
@@ -18,7 +19,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from database import (
-    init_db, get_db, get_top_news, get_news, get_news_stats,
+    init_db, get_db, get_top_news, get_news, get_news_by_id, get_news_stats,
     get_sources, add_source, update_source, delete_source,
     get_settings, get_setting, update_setting,
     get_priority_rules, add_priority_rule, update_priority_rule, delete_priority_rule,
@@ -30,12 +31,31 @@ from priority_engine import run_daily_priority_analysis
 from auto_discovery import run_feed_discovery
 from config import REGIONS, NEWS_CATEGORIES, FEED_TYPES, CVE_VENDOR_KEYWORDS
 
-# Configure logging
+# Configure logging - route all module loggers to log files
+from logger_config import (
+    app_logger, error_logger, access_logger,
+    LOG_DIR, DETAILED_FORMAT, APP_LOG
+)
+from logging.handlers import RotatingFileHandler
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Add file handlers to root logger so all module loggers propagate to log files
+_root = logging.getLogger()
+_root.setLevel(logging.INFO)
+_app_fh = RotatingFileHandler(APP_LOG, maxBytes=10*1024*1024, backupCount=5, encoding='utf-8')
+_app_fh.setFormatter(DETAILED_FORMAT)
+_root.addHandler(_app_fh)
+_err_fh = RotatingFileHandler(
+    os.path.join(LOG_DIR, 'error.log'), maxBytes=10*1024*1024, backupCount=5, encoding='utf-8'
+)
+_err_fh.setLevel(logging.ERROR)
+_err_fh.setFormatter(DETAILED_FORMAT)
+_root.addHandler(_err_fh)
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -173,15 +193,16 @@ def setup_update_scheduler():
 
 @app.route('/')
 def dashboard():
-    """
-    Main dashboard page.
-    Shows top 10 news summary, statistics, and quick overview.
-    """
-    top_news = get_top_news(limit=10)
+    """Main dashboard page with top 20 security news, stats, and overview."""
+    sort = request.args.get('sort', 'time')
+    if sort not in ('time', 'priority', 'category'):
+        sort = 'time'
+    top_news = get_top_news(limit=20, sort=sort)
     stats = get_news_stats()
     return render_template('dashboard.html',
                            top_news=top_news,
                            stats=stats,
+                           sort=sort,
                            regions=REGIONS,
                            categories=NEWS_CATEGORIES,
                            now=datetime.utcnow())
@@ -193,13 +214,13 @@ def dashboard():
 
 @app.route('/news')
 def news_list():
-    """
-    Full news list page with filtering capabilities.
-    Supports filters: category, region, source, priority, CVE vendor, search.
-    """
+    """Full news list page with filtering and sorting."""
     filters = {}
     page = request.args.get('page', 1, type=int)
     per_page = int(get_setting('items_per_page', '25'))
+    sort = request.args.get('sort', 'priority')
+    if sort not in ('time', 'priority', 'category', 'source'):
+        sort = 'priority'
 
     if request.args.get('category'):
         filters['category'] = request.args.get('category')
@@ -222,7 +243,7 @@ def news_list():
     if request.args.get('date_to'):
         filters['date_to'] = request.args.get('date_to')
 
-    news, total = get_news(filters=filters, page=page, per_page=per_page)
+    news, total = get_news(filters=filters, page=page, per_page=per_page, sort=sort)
     sources = get_sources()
     total_pages = (total + per_page - 1) // per_page
 
@@ -233,6 +254,7 @@ def news_list():
                            total_pages=total_pages,
                            per_page=per_page,
                            filters=filters,
+                           sort=sort,
                            sources=sources,
                            regions=REGIONS,
                            categories=NEWS_CATEGORIES,
@@ -245,19 +267,19 @@ def news_list():
 
 @app.route('/cve')
 def cve_page():
-    """
-    CVE-focused view showing vulnerability news.
-    Pre-filters for CVE-related content with vendor filtering.
-    """
+    """CVE-focused view with vendor filtering and sorting."""
     filters = {'has_cve': True}
     page = request.args.get('page', 1, type=int)
+    sort = request.args.get('sort', 'time')
+    if sort not in ('time', 'priority', 'category', 'source'):
+        sort = 'time'
 
     if request.args.get('vendor'):
         filters['cve_vendor'] = request.args.get('vendor')
     if request.args.get('search'):
         filters['search'] = request.args.get('search')
 
-    news, total = get_news(filters=filters, page=page, per_page=50)
+    news, total = get_news(filters=filters, page=page, per_page=50, sort=sort)
     total_pages = (total + 50 - 1) // 50
 
     return render_template('cve.html',
@@ -265,6 +287,7 @@ def cve_page():
                            total=total,
                            page=page,
                            total_pages=total_pages,
+                           sort=sort,
                            cve_vendors=CVE_VENDOR_KEYWORDS)
 
 
@@ -380,12 +403,27 @@ def discovered_reject(feed_id):
 
 @app.route('/priorities')
 def priorities_page():
-    """Priority rules management page. View, add, edit priority keyword rules."""
+    """Priority rules management with search and sorting."""
     rules = get_priority_rules()
+    search = request.args.get('search', '').strip().lower()
+    if search:
+        rules = [r for r in rules if search in r.get('keyword', '').lower()
+                 or search in r.get('level', '').lower()]
+    sort = request.args.get('sort', 'score')
+    if sort == 'keyword':
+        rules.sort(key=lambda r: r.get('keyword', ''))
+    elif sort == 'hits':
+        rules.sort(key=lambda r: r.get('hit_count', 0), reverse=True)
+    elif sort == 'level':
+        level_order = {'critical': 0, 'high': 1, 'medium': 2, 'low': 3}
+        rules.sort(key=lambda r: level_order.get(r.get('level', 'low'), 4))
+
     analysis_logs = get_analysis_logs(limit=10)
     return render_template('priorities.html',
                            rules=rules,
-                           analysis_logs=analysis_logs)
+                           analysis_logs=analysis_logs,
+                           search=search,
+                           sort=sort)
 
 
 @app.route('/priorities/add', methods=['POST'])
@@ -753,7 +791,7 @@ def api_attack_data():
     conn = get_db()
     try:
         rows = conn.execute('''
-            SELECT n.id, n.title, n.summary, n.region, n.priority_label,
+            SELECT n.id, n.title, n.url, n.summary, n.region, n.priority_label,
                    n.is_hacking_incident, n.has_cve, n.cve_vendors,
                    n.published_date, n.category
             FROM news n
@@ -803,9 +841,12 @@ def api_attack_data():
             target = random.choice(alts) if alts else 'United States'
 
         if attacker in COUNTRY_COORDS and target in COUNTRY_COORDS:
+            summary_text = rd.get('summary', '') or ''
             attacks.append({
                 'id': rd['id'],
                 'title': rd['title'],
+                'url': rd.get('url', ''),
+                'summary': summary_text[:300] if summary_text else '',
                 'source': {
                     'country': attacker,
                     'lat': COUNTRY_COORDS[attacker]['lat'],
@@ -824,6 +865,26 @@ def api_attack_data():
             })
 
     return jsonify({'attacks': attacks, 'stats': stats, 'total': len(attacks)})
+
+
+@app.route('/api/news/<int:news_id>')
+def api_news_detail(news_id):
+    """Get a single news article by ID (used by attack map detail overlay)."""
+    item = get_news_by_id(news_id)
+    if not item:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify(item)
+
+
+# ============================================================
+# ACCESS LOGGING
+# ============================================================
+
+@app.after_request
+def log_access(response):
+    """Log every HTTP request to access.log for the logs page."""
+    access_logger.info(f"{request.method} {request.path} {response.status_code}")
+    return response
 
 
 # ============================================================

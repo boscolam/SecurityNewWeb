@@ -115,6 +115,17 @@
                            placeholder="Search news..."
                            value="{{ filters.get('search', '') }}">
                 </div>
+
+                <!-- Sort order -->
+                <div class="filter-group">
+                    <label for="sort"><i class="fas fa-sort"></i> Sort By</label>
+                    <select name="sort" id="sort" onchange="this.form.submit()">
+                        <option value="priority" {% if sort == 'priority' %}selected{% endif %}>Priority</option>
+                        <option value="time" {% if sort == 'time' %}selected{% endif %}>Latest First</option>
+                        <option value="category" {% if sort == 'category' %}selected{% endif %}>Category</option>
+                        <option value="source" {% if sort == 'source' %}selected{% endif %}>Source</option>
+                    </select>
+                </div>
             </div>
 
             <!-- ============================================================
